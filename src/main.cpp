@@ -15,6 +15,22 @@ static void glfwError(int id, const char* description) {
 }
 
 
+VkPhysicalDevice pickPhysicalDevice(VkInstance &instance) {
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+    // take first device
+    VkPhysicalDeviceProperties physicalProperties = {};
+    for (const auto &device: devices) {
+        vkGetPhysicalDeviceProperties(device, &physicalProperties);
+        std::cout << "device: " << physicalProperties.deviceName << std::endl;
+        return device;
+    }
+}
+
+
 int main() {
     glfwSetErrorCallback(&glfwError);
     if (!glfwInit()) {
@@ -29,7 +45,7 @@ int main() {
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
     std::vector<VkExtensionProperties> extensions(extensionCount);
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-    std::cout << extensionCount << " extensions supported" << std::endl;
+    std::cout << extensionCount << " extensions supported:" << std::endl;
     for (const auto &extension: extensions) {
         std::cout << "\t" << extension.extensionName << std::endl;
     }
@@ -46,24 +62,50 @@ int main() {
     createInfo.ppEnabledExtensionNames = glfwExtensions;
 
     VkInstance instance;
-    VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
+    VkResult result;
+    result = vkCreateInstance(&createInfo, nullptr, &instance);
     if (result != VK_SUCCESS) {
         std::cout << "failed to create instance!" << std::endl;
     }
+    VkPhysicalDevice physicalDevice = pickPhysicalDevice(instance);
+
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
+    int graphicsFamily = 0;
 
 
-    uint32_t deviceCount = 0;
-    vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-    std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+    float priorities[] = { 1.0f };
+    VkDeviceQueueCreateInfo queueInfo = {};
+    queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueInfo.pNext = NULL;
+    queueInfo.flags = 0;
+    queueInfo.queueFamilyIndex = graphicsFamily;
+    queueInfo.queueCount = 1;
+    queueInfo.pQueuePriorities = &priorities[0];
 
 
+    VkPhysicalDeviceFeatures deviceFeatures = {};
+    VkDeviceCreateInfo deviceInfo = {};
+    deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceInfo.pNext = NULL;
+    deviceInfo.flags = 0;
+    deviceInfo.pQueueCreateInfos = &queueInfo;
+    deviceInfo.queueCreateInfoCount = 1;
+    //deviceInfo.enabledExtensionCount = glfwExtensionCount;
+    //deviceInfo.ppEnabledExtensionNames = glfwExtensions;
+    deviceInfo.pEnabledFeatures = &deviceFeatures;
 
-    VkPhysicalDeviceProperties physicalProperties = {};
-    for (const auto &device: devices) {
-        vkGetPhysicalDeviceProperties(device, &physicalProperties);
-        std::cout << "device: " << physicalProperties.deviceName << std::endl;
+    VkDevice device;
+    result = vkCreateDevice(physicalDevice, &deviceInfo, nullptr, &device);
+    if (result != VK_SUCCESS) {
+        std::cout << "failed to create logical device!" << std::endl;
     }
+
+
+    VkQueue graphicsQueue;
+    vkGetDeviceQueue(device, graphicsFamily, 0, &graphicsQueue);
 
 
     while(!glfwWindowShouldClose(window)) {
