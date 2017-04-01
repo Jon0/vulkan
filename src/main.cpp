@@ -11,7 +11,7 @@
 
 
 static void glfwError(int id, const char* description) {
-    std::cout << description << std::endl;
+    std::cout << "Error: " << description << std::endl;
 }
 
 
@@ -57,6 +57,13 @@ int main() {
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
+
+
+    VkPhysicalDeviceProperties physicalProperties = {};
+    for (const auto &device: devices) {
+        vkGetPhysicalDeviceProperties(device, &physicalProperties);
+        std::cout << "device: " << physicalProperties.deviceName << std::endl;
+    }
 
 
     while(!glfwWindowShouldClose(window)) {
