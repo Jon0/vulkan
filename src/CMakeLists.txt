@@ -20,6 +20,7 @@ include_directories(${GLM_INCLUDE_DIRS})
 
 file(GLOB VULKAN_FILES
 	"main.cpp"
+	"pipeline.cpp"
 )
 
 
