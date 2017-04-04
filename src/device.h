@@ -13,4 +13,5 @@ private:
     VkDevice device;
     VkPhysicalDevice physicalDevice;
     int graphicsFamily;
+    int displayFamily;
 };
