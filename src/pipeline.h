@@ -10,14 +10,13 @@ class Pipeline {
 public:
     Pipeline();
     VkInstance &getInstance();
+    VkPipeline &getVulkanPipeline();
     void createLayout(VkDevice &device);
-    void createRenderPass(VkDevice &device, const VkFormat &swapChainImageFormat);
     void loadShaders(VkShaderModule &vertShader, VkShaderModule &fragShader);
-    void setup(VkDevice &device, const VkExtent2D &swapChainExtent);
+    void setup(VkDevice &device, const VkExtent2D &swapChainExtent, VkRenderPass &renderPass);
 
 private:
     VkInstance instance;
-    VkRenderPass renderPass;
     VkShaderModule vertShaderModule;
     VkShaderModule fragShaderModule;
     VkPipelineLayout pipelineLayout;

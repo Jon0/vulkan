@@ -14,6 +14,7 @@ public:
     size_t getFramebufferSize() const;
     VkSwapchainKHR getSwapChain() const;
     VkExtent2D getExtent() const;
+    VkFramebuffer &getFrameBuffer(size_t bufferIndex);
     void createFrameBuffers(VkDevice &device, VkRenderPass &renderPass);
 
 private:

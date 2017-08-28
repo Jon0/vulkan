@@ -76,6 +76,11 @@ VkExtent2D SwapChain::getExtent() const {
 }
 
 
+VkFramebuffer &getFrameBuffer(size_t bufferIndex) {
+    return swapChainFramebuffers[bufferIndex];
+}
+
+
 void SwapChain::createFrameBuffers(VkDevice &device, VkRenderPass &renderPass) {
     swapChainFramebuffers.resize(swapChainImageViews.size());
     for (size_t i = 0; i < swapChainImageViews.size(); i++) {

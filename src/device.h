@@ -14,18 +14,15 @@ class Device {
 public:
     Device(VkInstance &instance);
     ~Device();
+    VkDevice &getVulkanDevice();
     void getPresentModes();
     VkQueue getGraphicsQueue();
     VkShaderModule loadShaderModule(const std::string &filepath);
-    void createCommandPool(Pipeline &pipeline, SwapChain &swapChain);
-    void renderFrame(VkSwapchainKHR &swapChain);
+    void createCommandPool(VkCommandPool &commandPool);
 
 private:
     VkDevice device;
     VkPhysicalDevice physicalDevice;
     int graphicsFamily;
     int displayFamily;
-    VkCommandPool commandPool;
-    VkSemaphore imageAvailableSemaphore;
-    VkSemaphore renderFinishedSemaphore;
 };
