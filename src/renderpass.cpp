@@ -81,9 +81,12 @@ void RenderPass::initCommandPool(Device &device, Pipeline &pipeline, SwapChain &
 }
 
 
-void RenderPass::renderFrame(VkDevice &device, VkSwapchainKHR &swapChain) {
+void RenderPass::renderFrame(Device &device, VkSwapchainKHR &swapChain) {
+    VkQueue graphicsQueue = device.getGraphicsQueue();
+    VkDevice vkDevice = device.getVulkanDevice();
+
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    vkAcquireNextImageKHR(vkDevice, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -111,8 +114,8 @@ void RenderPass::renderFrame(VkDevice &device, VkSwapchainKHR &swapChain) {
     dependency.srcAccessMask = 0;
     dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
+    //renderPassInfo.dependencyCount = 1;
+    //renderPassInfo.pDependencies = &dependency;
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

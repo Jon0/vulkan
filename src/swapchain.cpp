@@ -76,7 +76,7 @@ VkExtent2D SwapChain::getExtent() const {
 }
 
 
-VkFramebuffer &getFrameBuffer(size_t bufferIndex) {
+VkFramebuffer &SwapChain::getFrameBuffer(size_t bufferIndex) {
     return swapChainFramebuffers[bufferIndex];
 }
 
