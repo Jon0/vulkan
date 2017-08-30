@@ -2,17 +2,8 @@
 
 #include "window.h"
 
-static void glfwError(int id, const char* description) {
-    std::cout << "Error: " << description << std::endl;
-}
-
 
 Window::Window(VkInstance &instance) {
-    glfwSetErrorCallback(&glfwError);
-    if (!glfwInit()) {
-        std::cout << "Initialization failed" << std::endl;
-    }
-
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
@@ -30,7 +21,7 @@ Window::~Window() {
 }
 
 
-VkSurfaceKHR Window::getSurface() {
+VkSurfaceKHR &Window::getSurface() {
     return surface;
 }
 

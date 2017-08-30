@@ -3,7 +3,8 @@
 #include "surface.h"
 
 
-Surface::Surface(VkPhysicalDevice &physicalDevice, int graphicsFamily, VkSurfaceKHR &surface) {
+Surface::Surface(VkPhysicalDevice &physicalDevice, int graphicsFamily, VkSurfaceKHR &windowSurface) {
+    surface = windowSurface;
     VkBool32 presentSupport = false;
     vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, graphicsFamily, surface, &presentSupport);
     std::cout << "Present support: " << presentSupport << std::endl;
@@ -11,6 +12,8 @@ Surface::Surface(VkPhysicalDevice &physicalDevice, int graphicsFamily, VkSurface
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
     extent = capabilities.currentExtent;
+    std::cout << "extent: " << extent.width << ", " << extent.height << std::endl;
+
     imageCount = capabilities.minImageCount + 1;
     if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount) {
         imageCount = capabilities.maxImageCount;
@@ -23,6 +26,8 @@ Surface::Surface(VkPhysicalDevice &physicalDevice, int graphicsFamily, VkSurface
         formats.resize(formatCount);
         vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, formats.data());
     }
+
+    std::cout << "format count: " << formatCount << std::endl;
     for (const auto fmt: formats) {
         if (fmt.format == VK_FORMAT_B8G8R8A8_UNORM) {
             surfaceFormat = fmt;
@@ -35,6 +40,8 @@ Surface::Surface(VkPhysicalDevice &physicalDevice, int graphicsFamily, VkSurface
         presentModes.resize(presentModeCount);
         vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
     }
+
+    std::cout << "present mode count: " << presentModeCount << std::endl;
     for (const auto p: presentModes) {
         if (p == VK_PRESENT_MODE_MAILBOX_KHR) {
             presentMode = p;

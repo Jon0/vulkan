@@ -11,7 +11,7 @@ public:
     Window(VkInstance &instance);
     ~Window();
 
-    VkSurfaceKHR getSurface();
+    VkSurfaceKHR &getSurface();
     bool shouldClose();
     void pollEvents();
 

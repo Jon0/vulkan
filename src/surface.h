@@ -8,7 +8,7 @@
 
 class Surface {
 public:
-    Surface(VkPhysicalDevice &physicalDevice, int graphicsFamily, VkSurfaceKHR &surface);
+    Surface(VkPhysicalDevice &physicalDevice, int graphicsFamily, VkSurfaceKHR &windowSurface);
     VkSurfaceKHR getSurface() const;
     VkSurfaceCapabilitiesKHR getCapabilities() const;
     VkSurfaceFormatKHR getSurfaceFormat() const;

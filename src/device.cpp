@@ -5,39 +5,24 @@
 #include "device.h"
 
 
-bool printDevice(VkPhysicalDevice &device) {
-    VkPhysicalDeviceProperties deviceProperties;
-    VkPhysicalDeviceFeatures deviceFeatures;
-    vkGetPhysicalDeviceProperties(device, &deviceProperties);
-    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-    bool discreteGpu = deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
-    bool geometryShader = deviceFeatures.geometryShader;
-
-    std::cout << "selected device: " << deviceProperties.deviceName << std::endl;
-    std::cout << "discrete gpu: " << discreteGpu << std::endl;
-    std::cout << "geometry shader: " << geometryShader << std::endl;
+void printQueueFamily(const VkQueueFamilyProperties &queueFamily) {
+    std::cout << "queueFlags: " << queueFamily.queueFlags << std::endl;
+    std::cout << "graphics bit: " << (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) << std::endl;
+    std::cout << "queueCount: " << queueFamily.queueCount << std::endl;
+    std::cout << "minImageTransferGranularity.width: " << queueFamily.minImageTransferGranularity.width << std::endl;
+    std::cout << "minImageTransferGranularity.height: " << queueFamily.minImageTransferGranularity.height << std::endl;
+    std::cout << "minImageTransferGranularity.depth: " << queueFamily.minImageTransferGranularity.depth << std::endl;
 }
 
 
-VkPhysicalDevice pickPhysicalDevice(VkInstance &instance) {
-    uint32_t deviceCount = 0;
-    vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-    std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-    if (devices.size() > 0) {
-        return devices[0];
-    }
-}
-
-
-Device::Device(VkInstance &instance) {
-    VkPhysicalDevice physicalDevice = pickPhysicalDevice(instance);
-    printDevice(physicalDevice);
-
+Device::Device(VkPhysicalDevice &physicalDevice) {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
+    for (auto &queueFamily: queueFamilies) {
+            printQueueFamily(queueFamily);
+    }
     graphicsFamily = 0;
 
 
@@ -57,9 +42,9 @@ Device::Device(VkInstance &instance) {
     deviceInfo.flags = 0;
     deviceInfo.pQueueCreateInfos = &queueInfo;
     deviceInfo.queueCreateInfoCount = 1;
+    deviceInfo.pEnabledFeatures = &deviceFeatures;
     //deviceInfo.enabledExtensionCount = glfwExtensionCount;
     //deviceInfo.ppEnabledExtensionNames = glfwExtensions;
-    deviceInfo.pEnabledFeatures = &deviceFeatures;
 
     VkResult result = vkCreateDevice(physicalDevice, &deviceInfo, nullptr, &device);
     if (result != VK_SUCCESS) {
@@ -70,11 +55,17 @@ Device::Device(VkInstance &instance) {
 
 Device::~Device() {
     vkDeviceWaitIdle(device);
+    vkDestroyDevice(device, nullptr);
 }
 
 
 VkDevice &Device::getVulkanDevice() {
     return device;
+}
+
+
+int Device::getGraphicsFamily() const {
+    return graphicsFamily;
 }
 
 

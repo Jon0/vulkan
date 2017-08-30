@@ -12,11 +12,13 @@
 
 class Device {
 public:
-    Device(VkInstance &instance);
+    Device(VkPhysicalDevice &physicalDevice);
     ~Device();
     VkDevice &getVulkanDevice();
+    int getGraphicsFamily() const;
     void getPresentModes();
     VkQueue getGraphicsQueue();
+
     VkShaderModule loadShaderModule(const std::string &filepath);
     void createCommandPool(VkCommandPool &commandPool);
 
