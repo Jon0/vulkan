@@ -12,9 +12,11 @@ class SwapChain {
 public:
     SwapChain(VkDevice &device, Surface &surface);
     size_t getFramebufferSize() const;
-    VkSwapchainKHR getSwapChain() const;
+    VkSwapchainKHR &getSwapChain();
+    VkFormat getImageFormat() const;
     VkExtent2D getExtent() const;
     VkFramebuffer &getFrameBuffer(size_t bufferIndex);
+
     void createFrameBuffers(VkDevice &device, VkRenderPass &renderPass);
 
 private:

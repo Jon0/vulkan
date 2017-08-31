@@ -6,11 +6,14 @@
 #include <GLFW/glfw3.h>
 
 #include "device.h"
+#include "pipeline.h"
+#include "swapchain.h"
 
 
 class RenderPass {
 public:
     RenderPass(VkDevice &device, const VkFormat &swapChainImageFormat);
+    VkRenderPass &getVulkanRenderPass();
     void initCommandPool(Device &device, Pipeline &pipeline, SwapChain &swapChain);
     void renderFrame(Device &device, VkSwapchainKHR &swapChain);
 

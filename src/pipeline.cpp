@@ -3,8 +3,11 @@
 #include "pipeline.h"
 
 
-Pipeline::Pipeline() {
-
+Pipeline::Pipeline(Device &device, const VkExtent2D &swapChainExtent, VkRenderPass &renderPass) {
+    vertShaderModule = device.loadShaderModule("shaders/vert.spv");
+    fragShaderModule = device.loadShaderModule("shaders/frag.spv");
+    createLayout(device.getVulkanDevice());
+    setup(device.getVulkanDevice(), swapChainExtent, renderPass);
 }
 
 
@@ -25,12 +28,6 @@ void Pipeline::createLayout(VkDevice &device) {
     if (result != VK_SUCCESS) {
         std::cout << "Failed to create pipeline layout" << std::endl;
     }
-}
-
-
-void Pipeline::loadShaders(VkShaderModule &vertShader, VkShaderModule &fragShader) {
-    vertShaderModule = vertShader;
-    fragShaderModule = fragShader;
 }
 
 

@@ -66,8 +66,13 @@ size_t SwapChain::getFramebufferSize() const {
 }
 
 
-VkSwapchainKHR SwapChain::getSwapChain() const {
+VkSwapchainKHR &SwapChain::getSwapChain() {
     return swapChain;
+}
+
+
+VkFormat SwapChain::getImageFormat() const {
+    return swapChainImageFormat;
 }
 
 

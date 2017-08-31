@@ -17,7 +17,6 @@ Window::Window(VkInstance &instance) {
 
 Window::~Window() {
     glfwDestroyWindow(window);
-    glfwTerminate();
 }
 
 

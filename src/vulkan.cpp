@@ -9,7 +9,7 @@ static void glfwError(int id, const char* description) {
 }
 
 
-VulkanInstance::VulkanInstance() {
+VulkanInstance::VulkanInstance(bool enableValidation) {
 
     // must init glfw first
     glfwSetErrorCallback(&glfwError);
@@ -17,6 +17,7 @@ VulkanInstance::VulkanInstance() {
         std::cout << "Initialization failed" << std::endl;
     }
 
+    // check available extensions
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
     std::vector<VkExtensionProperties> extensions(extensionCount);
@@ -26,29 +27,53 @@ VulkanInstance::VulkanInstance() {
         std::cout << "\t" << extension.extensionName << std::endl;
     }
 
+    // check required extensions
+    std::vector<const char*> requiredExtensions;
+    requiredExtensions.push_back("VK_EXT_debug_report");
     unsigned int glfwExtensionCount = 0;
     const char** glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     std::cout << glfwExtensionCount << " Extensions required:" << std::endl;
-
     for (int i = 0; i < glfwExtensionCount; ++i) {
         std::cout << "\t" << glfwExtensions[i] << std::endl;
+        requiredExtensions.push_back(glfwExtensions[i]);
+    }
+
+    // check available validation layers
+    uint32_t layerCount;
+    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+    std::vector<VkLayerProperties> availableLayers(layerCount);
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+    for (const auto &layerProperties: availableLayers) {
+        std::cout << layerProperties.layerName << std::endl;
+    }
+
+    // add required validation layers
+    std::vector<const char*> validationLayers;
+    if (enableValidation) {
+        validationLayers.push_back("VK_LAYER_LUNARG_standard_validation");
     }
 
     VkInstanceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.enabledExtensionCount = glfwExtensionCount;
-    createInfo.ppEnabledExtensionNames = glfwExtensions;
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
+    createInfo.ppEnabledExtensionNames = requiredExtensions.data();
+    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.data();
 
     VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
     if (result != VK_SUCCESS) {
         std::cout << "Failed to create instance" << std::endl;
+    }
+    else {
+        std::cout << "Created instance" << std::endl;
     }
 }
 
 
 VulkanInstance::~VulkanInstance() {
     vkDestroyInstance(instance, nullptr);
+    glfwTerminate();
 }
 
 

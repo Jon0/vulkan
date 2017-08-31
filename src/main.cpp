@@ -2,7 +2,9 @@
 #include <vector>
 
 #include "device.h"
+#include "renderpass.h"
 #include "surface.h"
+#include "swapchain.h"
 #include "vulkan.h"
 #include "window.h"
 
@@ -36,7 +38,7 @@ bool printDevice(VkPhysicalDevice &device) {
 
 
 int main() {
-    VulkanInstance instance;
+    VulkanInstance instance(true);
 
     // list devices
     std::vector<VkPhysicalDevice> devices;
@@ -53,19 +55,16 @@ int main() {
 
     // create swap chain using window surface
     SwapChain swapChain(device.getVulkanDevice(), surface);
+    RenderPass renderPass(device.getVulkanDevice(), swapChain.getImageFormat());
+    swapChain.createFrameBuffers(device.getVulkanDevice(), renderPass.getVulkanRenderPass());
 
-
-
-
-    Pipeline pipeline;
-
-
-
-    //vertShaderModule = device.loadShaderModule("shaders/vert.spv");
-    //fragShaderModule = device.loadShaderModule("shaders/frag.spv");
+    // setup pipeline
+    Pipeline pipeline(device, swapChain.getExtent(), renderPass.getVulkanRenderPass());
+    renderPass.initCommandPool(device, pipeline, swapChain);
 
     while(!window.shouldClose()) {
         window.pollEvents();
+        renderPass.renderFrame(device, swapChain.getSwapChain());
     }
     return 0;
 }

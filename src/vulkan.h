@@ -8,7 +8,7 @@
 
 class VulkanInstance {
 public:
-    VulkanInstance();
+    VulkanInstance(bool enableValidation);
     ~VulkanInstance();
 
     VkInstance &getVulkanInstance();

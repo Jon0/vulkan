@@ -15,7 +15,9 @@ void printQueueFamily(const VkQueueFamilyProperties &queueFamily) {
 }
 
 
-Device::Device(VkPhysicalDevice &physicalDevice) {
+Device::Device(VkPhysicalDevice &physDevice)
+    :
+    physicalDevice {physDevice} {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
@@ -24,7 +26,6 @@ Device::Device(VkPhysicalDevice &physicalDevice) {
             printQueueFamily(queueFamily);
     }
     graphicsFamily = 0;
-
 
     float priorities[] = { 1.0f };
     VkDeviceQueueCreateInfo queueInfo = {};
@@ -50,6 +51,7 @@ Device::Device(VkPhysicalDevice &physicalDevice) {
     if (result != VK_SUCCESS) {
         std::cout << "Failed to create logical device" << std::endl;
     }
+    vkGetDeviceQueue(device, graphicsFamily, 0, &graphicsQueue);
 }
 
 
@@ -64,22 +66,20 @@ VkDevice &Device::getVulkanDevice() {
 }
 
 
-int Device::getGraphicsFamily() const {
-    return graphicsFamily;
+VkQueue &Device::getGraphicsQueue() {
+    return graphicsQueue;
 }
 
 
-VkQueue Device::getGraphicsQueue() {
-    VkQueue graphicsQueue;
-    vkGetDeviceQueue(device, graphicsFamily, 0, &graphicsQueue);
-    return graphicsQueue;
+int Device::getGraphicsFamily() const {
+    return graphicsFamily;
 }
 
 
 VkShaderModule Device::loadShaderModule(const std::string &filepath) {
     std::ifstream file(filepath, std::ios::ate | std::ios::binary);
     if (!file.is_open()) {
-        std::cout << "failed to open file!" << std::endl;
+        std::cout << "failed to open file " << filepath << std::endl;
     }
 
 
@@ -113,5 +113,16 @@ void Device::createCommandPool(VkCommandPool &commandPool) {
     VkResult result = vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool);
     if (result != VK_SUCCESS) {
         std::cout << "Failed to create command pool" << std::endl;
+    }
+}
+
+
+void Device::createSemaphore(VkSemaphore &semaphore) {
+    VkSemaphoreCreateInfo semaphoreInfo = {};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkResult result = vkCreateSemaphore(device, &semaphoreInfo, nullptr, &semaphore);
+    if (result != VK_SUCCESS) {
+        std::cout << "failed to create semaphore!" << std::endl;
     }
 }

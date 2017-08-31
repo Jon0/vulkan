@@ -9,9 +9,13 @@ project("${PROJECT_NAME}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/build/")
 
 
-#include src directory
+# include src directory
 include_directories("${PROJECT_SOURCE_DIR}/")
 
 
-#build executable
+# build shaders
+add_subdirectory(shaders)
+
+
+# build executable
 add_subdirectory(src)

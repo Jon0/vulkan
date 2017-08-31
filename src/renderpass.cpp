@@ -37,6 +37,11 @@ RenderPass::RenderPass(VkDevice &device, const VkFormat &swapChainImageFormat) {
 }
 
 
+VkRenderPass &RenderPass::getVulkanRenderPass() {
+    return renderPass;
+}
+
+
 void RenderPass::initCommandPool(Device &device, Pipeline &pipeline, SwapChain &swapChain) {
     device.createCommandPool(commandPool);
     allocateCommandBuffers(commandBuffers, device.getVulkanDevice(), swapChain.getFramebufferSize());
@@ -68,25 +73,15 @@ void RenderPass::initCommandPool(Device &device, Pipeline &pipeline, SwapChain &
         }
     }
 
-    VkSemaphoreCreateInfo semaphoreInfo = {};
-    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    VkResult result = vkCreateSemaphore(device.getVulkanDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphore);
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create semaphores!");
-    }
-    result = vkCreateSemaphore(device.getVulkanDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphore);
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("failed to create semaphores!");
-    }
+    device.createSemaphore(imageAvailableSemaphore);
+    device.createSemaphore(renderFinishedSemaphore);
 }
 
 
 void RenderPass::renderFrame(Device &device, VkSwapchainKHR &swapChain) {
-    VkQueue graphicsQueue = device.getGraphicsQueue();
-    VkDevice vkDevice = device.getVulkanDevice();
-
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(vkDevice, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    vkAcquireNextImageKHR(device.getVulkanDevice(), swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    std::cout << "image index: " << imageIndex << std::endl;
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -103,8 +98,8 @@ void RenderPass::renderFrame(Device &device, VkSwapchainKHR &swapChain) {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
-        throw std::runtime_error("failed to submit draw command buffer!");
+    if (vkQueueSubmit(device.getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+        std::cout << "failed to submit draw command buffer!" << std::endl;
     }
 
     VkSubpassDependency dependency = {};
@@ -127,7 +122,7 @@ void RenderPass::renderFrame(Device &device, VkSwapchainKHR &swapChain) {
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr; // Optional
-    vkQueuePresentKHR(graphicsQueue, &presentInfo);
+    vkQueuePresentKHR(device.getGraphicsQueue(), &presentInfo);
 }
 
 
