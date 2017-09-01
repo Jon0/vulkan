@@ -3,10 +3,12 @@
 #include "window.h"
 
 
-Window::Window(VkInstance &instance) {
+Window::Window(VkInstance &instance, int width, int height)
+    :
+    instance {instance} {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
+    window = glfwCreateWindow(width, height, "Vulkan window", nullptr, nullptr);
     VkResult err = glfwCreateWindowSurface(instance, window, NULL, &surface);
     if (err)
     {
@@ -16,6 +18,7 @@ Window::Window(VkInstance &instance) {
 
 
 Window::~Window() {
+    vkDestroySurfaceKHR(instance, surface, nullptr);
     glfwDestroyWindow(window);
 }
 

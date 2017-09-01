@@ -8,7 +8,7 @@
 
 class Window {
 public:
-    Window(VkInstance &instance);
+    Window(VkInstance &instance, int width, int height);
     ~Window();
 
     VkSurfaceKHR &getSurface();
@@ -16,6 +16,7 @@ public:
     void pollEvents();
 
 private:
+    VkInstance &instance;
     GLFWwindow *window;
     VkSurfaceKHR surface;
 

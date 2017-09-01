@@ -2,7 +2,9 @@
 
 #include "swapchain.h"
 
-SwapChain::SwapChain(VkDevice &device, Surface &surface) {
+SwapChain::SwapChain(VkDevice &device, Surface &surface)
+    :
+    device {device} {
     VkSurfaceCapabilitiesKHR capabilities = surface.getCapabilities();
     VkSurfaceFormatKHR surfaceFormat = surface.getSurfaceFormat();
     uint32_t imageCount = surface.getImageCount();
@@ -58,6 +60,17 @@ SwapChain::SwapChain(VkDevice &device, Surface &surface) {
             std::cout << "Failed to create image view" << std::endl;
         }
     }
+}
+
+
+SwapChain::~SwapChain() {
+    for (size_t i = 0; i < swapChainFramebuffers.size(); ++i) {
+        vkDestroyFramebuffer(device, swapChainFramebuffers[i], nullptr);
+    }
+    for (size_t i = 0; i < swapChainImages.size(); ++i) {
+        vkDestroyImageView(device, swapChainImageViews[i], nullptr);
+    }
+    vkDestroySwapchainKHR(device, swapChain, nullptr);
 }
 
 

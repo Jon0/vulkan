@@ -1,4 +1,6 @@
+#include <chrono>
 #include <iostream>
+#include <thread>
 #include <vector>
 
 #include "device.h"
@@ -26,19 +28,20 @@ bool printDevice(VkPhysicalDevice &device) {
 
     std::cout << "api version: " << deviceProperties.apiVersion << std::endl;
     std::cout << "driver version: " << deviceProperties.driverVersion << std::endl;
-    std::cout << "selected device: " << deviceProperties.deviceName << std::endl;
+    std::cout << "device name: " << deviceProperties.deviceName << std::endl;
     std::cout << "discrete gpu: " << discreteGpu << std::endl;
     std::cout << "geometry shader: " << geometryShader << std::endl;
     std::cout << "memory types: " << deviceMemory.memoryTypeCount << std::endl;
     std::cout << "memory heaps: " << deviceMemory.memoryHeapCount << std::endl;
     for (int i = 0; i < deviceMemory.memoryHeapCount; ++i) {
-        std::cout << "size: " << deviceMemory.memoryHeaps[i].size << std::endl;
+        double memSize = (double) deviceMemory.memoryHeaps[i].size / 1000000.0;
+        std::cout << "size: " << memSize << " MB" << std::endl;
     }
 }
 
 
-int main() {
-    VulkanInstance instance(true);
+int main(int argc, const char *argv[]) {
+    VulkanInstance instance(argc > 1);
 
     // list devices
     std::vector<VkPhysicalDevice> devices;
@@ -46,11 +49,11 @@ int main() {
     for (auto &device: devices) {
         printDevice(device);
     }
-    VkPhysicalDevice physicalDevice = devices[1];
+    VkPhysicalDevice physicalDevice = devices[0];
     Device device(physicalDevice);
 
     // create window and surface
-    Window window(instance.getVulkanInstance());
+    Window window(instance.getVulkanInstance(), 3200, 1800);
     Surface surface(physicalDevice, device.getGraphicsFamily(), window.getSurface());
 
     // create swap chain using window surface
@@ -62,9 +65,19 @@ int main() {
     Pipeline pipeline(device, swapChain.getExtent(), renderPass.getVulkanRenderPass());
     renderPass.initCommandPool(device, pipeline, swapChain);
 
+    int frames = 0;
+    auto start = std::chrono::system_clock::now();
     while(!window.shouldClose()) {
         window.pollEvents();
         renderPass.renderFrame(device, swapChain.getSwapChain());
+        frames++;
+        //std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(20));
     }
+
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> diff = end - start;
+    double fps = (double) frames / diff.count();
+    std::cout << "rendered " << frames << " in " << diff.count() << " (" << fps << " fps)" << std::endl;
+
     return 0;
 }

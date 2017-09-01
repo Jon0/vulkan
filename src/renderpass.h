@@ -13,6 +13,8 @@
 class RenderPass {
 public:
     RenderPass(VkDevice &device, const VkFormat &swapChainImageFormat);
+    ~RenderPass();
+
     VkRenderPass &getVulkanRenderPass();
     void initCommandPool(Device &device, Pipeline &pipeline, SwapChain &swapChain);
     void renderFrame(Device &device, VkSwapchainKHR &swapChain);
@@ -20,9 +22,11 @@ public:
 private:
     void allocateCommandBuffers(std::vector<VkCommandBuffer> &commandBuffers, VkDevice &device, size_t bufferCount);
 
+    VkDevice device;
     VkRenderPass renderPass;
     VkCommandPool commandPool;
     std::vector<VkCommandBuffer> commandBuffers;
+    std::vector<VkFence> fences;
     VkSemaphore imageAvailableSemaphore;
     VkSemaphore renderFinishedSemaphore;
 

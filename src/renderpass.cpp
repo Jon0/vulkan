@@ -3,7 +3,9 @@
 #include "renderpass.h"
 
 
-RenderPass::RenderPass(VkDevice &device, const VkFormat &swapChainImageFormat) {
+RenderPass::RenderPass(VkDevice &device, const VkFormat &swapChainImageFormat)
+    :
+    device {device} {
     VkAttachmentDescription colorAttachment = {};
     colorAttachment.format = swapChainImageFormat;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -34,6 +36,19 @@ RenderPass::RenderPass(VkDevice &device, const VkFormat &swapChainImageFormat) {
     if (result != VK_SUCCESS) {
         std::cout << "Failed to create render pass" << std::endl;
     }
+}
+
+
+RenderPass::~RenderPass() {
+    vkWaitForFences(device, fences.size(), fences.data(), true, std::numeric_limits<uint64_t>::max());
+    for (size_t i = 0; i < fences.size(); ++i) {
+        vkDestroyFence(device, fences[i], nullptr);
+    }
+    vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
+    vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
+    vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    vkDestroyRenderPass(device, renderPass, nullptr);
 }
 
 
@@ -75,13 +90,26 @@ void RenderPass::initCommandPool(Device &device, Pipeline &pipeline, SwapChain &
 
     device.createSemaphore(imageAvailableSemaphore);
     device.createSemaphore(renderFinishedSemaphore);
+
+    // unused?
+    VkSubpassDependency dependency = {};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    //renderPassInfo.dependencyCount = 1;
+    //renderPassInfo.pDependencies = &dependency;
 }
+
 
 
 void RenderPass::renderFrame(Device &device, VkSwapchainKHR &swapChain) {
     uint32_t imageIndex;
     vkAcquireNextImageKHR(device.getVulkanDevice(), swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
-    std::cout << "image index: " << imageIndex << std::endl;
+    vkWaitForFences(device.getVulkanDevice(), 1, &fences[imageIndex], true, std::numeric_limits<uint64_t>::max());
+    vkResetFences(device.getVulkanDevice(), 1, &fences[imageIndex]);
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -98,19 +126,9 @@ void RenderPass::renderFrame(Device &device, VkSwapchainKHR &swapChain) {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit(device.getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+    if (vkQueueSubmit(device.getGraphicsQueue(), 1, &submitInfo, fences[imageIndex]) != VK_SUCCESS) {
         std::cout << "failed to submit draw command buffer!" << std::endl;
     }
-
-    VkSubpassDependency dependency = {};
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.srcAccessMask = 0;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    //renderPassInfo.dependencyCount = 1;
-    //renderPassInfo.pDependencies = &dependency;
 
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -123,6 +141,7 @@ void RenderPass::renderFrame(Device &device, VkSwapchainKHR &swapChain) {
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr; // Optional
     vkQueuePresentKHR(device.getGraphicsQueue(), &presentInfo);
+    vkQueueWaitIdle(device.getGraphicsQueue());
 }
 
 
@@ -137,5 +156,13 @@ void RenderPass::allocateCommandBuffers(std::vector<VkCommandBuffer> &commandBuf
     VkResult result = vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data());
     if (result != VK_SUCCESS) {
         std::cout << "Failed to allocate command buffers" << std::endl;
+    }
+
+
+    fences.resize(bufferCount);
+    VkFenceCreateInfo fenceInfo = {};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    for (size_t i = 0; i < bufferCount; ++i) {
+        vkCreateFence(device, &fenceInfo, nullptr, &fences[i]);
     }
 }

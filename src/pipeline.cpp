@@ -3,11 +3,21 @@
 #include "pipeline.h"
 
 
-Pipeline::Pipeline(Device &device, const VkExtent2D &swapChainExtent, VkRenderPass &renderPass) {
+Pipeline::Pipeline(Device &device, const VkExtent2D &swapChainExtent, VkRenderPass &renderPass)
+    :
+    vulkanDevice {device.getVulkanDevice()} {
     vertShaderModule = device.loadShaderModule("shaders/vert.spv");
     fragShaderModule = device.loadShaderModule("shaders/frag.spv");
     createLayout(device.getVulkanDevice());
     setup(device.getVulkanDevice(), swapChainExtent, renderPass);
+}
+
+
+Pipeline::~Pipeline() {
+    vkDestroyPipeline(vulkanDevice, graphicsPipeline, nullptr);
+    vkDestroyShaderModule(vulkanDevice, fragShaderModule, nullptr);
+    vkDestroyShaderModule(vulkanDevice, vertShaderModule, nullptr);
+    vkDestroyPipelineLayout(vulkanDevice, pipelineLayout, nullptr);
 }
 
 
