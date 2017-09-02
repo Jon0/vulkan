@@ -41,6 +41,8 @@ bool printDevice(VkPhysicalDevice &device) {
 
 
 int main(int argc, const char *argv[]) {
+
+    // create vulkan instance with validation
     VulkanInstance instance(argc > 1);
 
     // list devices

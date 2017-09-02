@@ -5,6 +5,8 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include "device.h"
+
 
 class VulkanInstance {
 public:
@@ -16,5 +18,6 @@ public:
 
 private:
     VkInstance instance;
+    std::vector<PhysicalDevice> devices;
 
 };

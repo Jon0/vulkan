@@ -7,6 +7,22 @@
 #include <GLFW/glfw3.h>
 
 
+class PhysicalDevice {
+public:
+    PhysicalDevice(VkPhysicalDevice &physicalDevice);
+    ~PhysicalDevice();
+
+    std::vector<VkQueueFamilyProperties> getQueueFamilies() const;
+    VkDevice createLogicalDevice(int graphicsFamily);
+
+private:
+    VkPhysicalDevice physicalDevice;
+    int graphicsFamily;
+    int displayFamily;
+
+};
+
+
 class Device {
 public:
     Device(VkPhysicalDevice &physDevice);
@@ -24,7 +40,7 @@ public:
     void createSemaphore(VkSemaphore &semaphore);
 
 private:
-    VkPhysicalDevice physicalDevice;
+    PhysicalDevice physicalDevice;
     VkDevice device;
     VkQueue graphicsQueue;
     int graphicsFamily;

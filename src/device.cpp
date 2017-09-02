@@ -15,18 +15,28 @@ void printQueueFamily(const VkQueueFamilyProperties &queueFamily) {
 }
 
 
-Device::Device(VkPhysicalDevice &physDevice)
+PhysicalDevice::PhysicalDevice(VkPhysicalDevice &physicalDevice)
     :
-    physicalDevice {physDevice} {
+    physicalDevice {physicalDevice} {
+
+}
+
+
+PhysicalDevice::~PhysicalDevice() {
+
+}
+
+
+std::vector<VkQueueFamilyProperties> PhysicalDevice::getQueueFamilies() const {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies.data());
-    for (auto &queueFamily: queueFamilies) {
-            printQueueFamily(queueFamily);
-    }
-    graphicsFamily = 0;
+    return queueFamilies;
+}
 
+
+VkDevice PhysicalDevice::createLogicalDevice(int graphicsFamily) {
     float priorities[] = { 1.0f };
     VkDeviceQueueCreateInfo queueInfo = {};
     queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -47,10 +57,27 @@ Device::Device(VkPhysicalDevice &physDevice)
     //deviceInfo.enabledExtensionCount = glfwExtensionCount;
     //deviceInfo.ppEnabledExtensionNames = glfwExtensions;
 
+    VkDevice device;
     VkResult result = vkCreateDevice(physicalDevice, &deviceInfo, nullptr, &device);
     if (result != VK_SUCCESS) {
         std::cout << "Failed to create logical device" << std::endl;
     }
+    return device;
+}
+
+
+Device::Device(VkPhysicalDevice &physDevice)
+    :
+    physicalDevice {physDevice} {
+
+    // list queue families
+    std::vector<VkQueueFamilyProperties> queueFamilies = physicalDevice.getQueueFamilies();
+    for (auto &queueFamily: queueFamilies) {
+        printQueueFamily(queueFamily);
+    }
+    graphicsFamily = 0;
+
+    device = physicalDevice.createLogicalDevice(graphicsFamily);
     vkGetDeviceQueue(device, graphicsFamily, 0, &graphicsQueue);
 }
 
