@@ -70,16 +70,16 @@ int main(int argc, const char *argv[]) {
     int frames = 0;
     auto start = std::chrono::system_clock::now();
     while(!window.shouldClose()) {
-        window.pollEvents();
+         window.pollEvents();
         renderPass.renderFrame(device, swapChain.getSwapChain());
-        frames++;
-        //std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(20));
+    //     frames++;
+         std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(100));
     }
 
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> diff = end - start;
-    double fps = (double) frames / diff.count();
-    std::cout << "rendered " << frames << " in " << diff.count() << " (" << fps << " fps)" << std::endl;
+    // auto end = std::chrono::system_clock::now();
+    // std::chrono::duration<double> diff = end - start;
+    // double fps = (double) frames / diff.count();
+    // std::cout << "rendered " << frames << " in " << diff.count() << " (" << fps << " fps)" << std::endl;
 
     return 0;
 }
