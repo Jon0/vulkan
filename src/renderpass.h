@@ -6,13 +6,14 @@
 #include <GLFW/glfw3.h>
 
 #include "device.h"
+#include "memory.h"
 #include "pipeline.h"
 #include "swapchain.h"
 
 
 class RenderPass {
 public:
-    RenderPass(VkDevice &device, const VkFormat &swapChainImageFormat);
+    RenderPass(VkPhysicalDevice &physicalDevice, VkDevice &device, const VkFormat &swapChainImageFormat);
     ~RenderPass();
 
     VkRenderPass &getVulkanRenderPass();
@@ -29,5 +30,6 @@ private:
     std::vector<VkFence> fences;
     VkSemaphore imageAvailableSemaphore;
     VkSemaphore renderFinishedSemaphore;
+    Memory vertexData;
 
 };

@@ -3,9 +3,10 @@
 #include "renderpass.h"
 
 
-RenderPass::RenderPass(VkDevice &device, const VkFormat &swapChainImageFormat)
+RenderPass::RenderPass(VkPhysicalDevice &physicalDevice, VkDevice &device, const VkFormat &swapChainImageFormat)
     :
-    device {device} {
+    device {device},
+    vertexData {physicalDevice, device} {
     VkAttachmentDescription colorAttachment = {};
     colorAttachment.format = swapChainImageFormat;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -80,7 +81,7 @@ void RenderPass::initCommandPool(Device &device, Pipeline &pipeline, SwapChain &
         renderPassBeginInfo.pClearValues = &clearColor;
         vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getVulkanPipeline());
-        vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+        vertexData.render(commandBuffers[i]);
         vkCmdEndRenderPass(commandBuffers[i]);
         VkResult result = vkEndCommandBuffer(commandBuffers[i]);
         if (result != VK_SUCCESS) {

@@ -21,10 +21,12 @@ include_directories(${GLM_INCLUDE_DIRS})
 file(GLOB VULKAN_FILES
 	"main.cpp"
 	"device.cpp"
+	"memory.cpp"
 	"pipeline.cpp"
 	"renderpass.cpp"
 	"surface.cpp"
 	"swapchain.cpp"
+	"vertex.cpp"
 	"vulkan.cpp"
 	"window.cpp"
 )

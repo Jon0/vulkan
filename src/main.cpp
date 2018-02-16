@@ -60,7 +60,7 @@ int main(int argc, const char *argv[]) {
 
     // create swap chain using window surface
     SwapChain swapChain(device.getVulkanDevice(), surface);
-    RenderPass renderPass(device.getVulkanDevice(), swapChain.getImageFormat());
+    RenderPass renderPass(physicalDevice, device.getVulkanDevice(), swapChain.getImageFormat());
     swapChain.createFrameBuffers(device.getVulkanDevice(), renderPass.getVulkanRenderPass());
 
     // setup pipeline
@@ -71,9 +71,9 @@ int main(int argc, const char *argv[]) {
     auto start = std::chrono::system_clock::now();
     while(!window.shouldClose()) {
          window.pollEvents();
-        renderPass.renderFrame(device, swapChain.getSwapChain());
+         renderPass.renderFrame(device, swapChain.getSwapChain());
     //     frames++;
-         std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(100));
+         std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(1000));
     }
 
     // auto end = std::chrono::system_clock::now();
