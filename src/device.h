@@ -14,6 +14,9 @@ public:
 
     std::vector<VkQueueFamilyProperties> getQueueFamilies() const;
     VkDevice createLogicalDevice(int graphicsFamily);
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
+
 
 private:
     VkPhysicalDevice physicalDevice;
@@ -27,6 +30,7 @@ class Device {
 public:
     Device(VkPhysicalDevice &physDevice);
     ~Device();
+    PhysicalDevice &getPhysicalDevice();
     VkDevice &getVulkanDevice();
     VkQueue &getGraphicsQueue();
     int getGraphicsFamily() const;

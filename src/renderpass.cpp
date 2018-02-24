@@ -1,12 +1,22 @@
 #include <iostream>
 
+#include "vertex.h"
 #include "renderpass.h"
 
 
-RenderPass::RenderPass(VkPhysicalDevice &physicalDevice, VkDevice &device, const VkFormat &swapChainImageFormat)
+RenderPass::RenderPass(Device &deviceObj, const VkFormat &swapChainImageFormat)
     :
-    device {device},
-    vertexData {physicalDevice, device} {
+    device {deviceObj.getVulkanDevice()},
+    vertexData {
+        deviceObj.getPhysicalDevice(),
+        device,
+        sizeof(vertices[0]) * vertices.size(),
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    } {
+
+    vertexData.copyData(vertices.data());
+
     VkAttachmentDescription colorAttachment = {};
     colorAttachment.format = swapChainImageFormat;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -81,7 +91,7 @@ void RenderPass::initCommandPool(Device &device, Pipeline &pipeline, SwapChain &
         renderPassBeginInfo.pClearValues = &clearColor;
         vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getVulkanPipeline());
-        vertexData.render(commandBuffers[i]);
+        vertexData.render(commandBuffers[i], vertices.size());
         vkCmdEndRenderPass(commandBuffers[i]);
         VkResult result = vkEndCommandBuffer(commandBuffers[i]);
         if (result != VK_SUCCESS) {

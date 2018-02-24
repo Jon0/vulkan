@@ -26,6 +26,7 @@ file(GLOB VULKAN_FILES
 	"renderpass.cpp"
 	"surface.cpp"
 	"swapchain.cpp"
+	"uniform.cpp"
 	"vertex.cpp"
 	"vulkan.cpp"
 	"window.cpp"

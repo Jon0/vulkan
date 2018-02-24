@@ -11,21 +11,22 @@
 
 class Memory {
 public:
-    Memory(VkPhysicalDevice &physicalDevice, VkDevice &dev);
+    Memory(PhysicalDevice &physicalDevice, VkDevice &dev, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
     ~Memory();
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    void copyData(const void *newData);
+
 
     /*
      * submit drawing commands to queue
      */
-    void render(VkCommandBuffer &commandBuffer);
+    void render(VkCommandBuffer &commandBuffer, uint32_t count);
 
 private:
     VkDevice &device;
+    VkDeviceSize bufferSize;
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
     VkMemoryRequirements memRequirements;
-    VkPhysicalDeviceMemoryProperties memProperties;
 
 
 };

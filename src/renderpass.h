@@ -13,7 +13,7 @@
 
 class RenderPass {
 public:
-    RenderPass(VkPhysicalDevice &physicalDevice, VkDevice &device, const VkFormat &swapChainImageFormat);
+    RenderPass(Device &device, const VkFormat &swapChainImageFormat);
     ~RenderPass();
 
     VkRenderPass &getVulkanRenderPass();

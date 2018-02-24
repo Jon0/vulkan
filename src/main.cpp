@@ -60,7 +60,7 @@ int main(int argc, const char *argv[]) {
 
     // create swap chain using window surface
     SwapChain swapChain(device.getVulkanDevice(), surface);
-    RenderPass renderPass(physicalDevice, device.getVulkanDevice(), swapChain.getImageFormat());
+    RenderPass renderPass(device, swapChain.getImageFormat());
     swapChain.createFrameBuffers(device.getVulkanDevice(), renderPass.getVulkanRenderPass());
 
     // setup pipeline

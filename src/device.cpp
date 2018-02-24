@@ -66,6 +66,20 @@ VkDevice PhysicalDevice::createLogicalDevice(int graphicsFamily) {
 }
 
 
+uint32_t PhysicalDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+    throw std::runtime_error("failed to find suitable memory type!");
+}
+
+
+
 Device::Device(VkPhysicalDevice &physDevice)
     :
     physicalDevice {physDevice} {
@@ -85,6 +99,11 @@ Device::Device(VkPhysicalDevice &physDevice)
 Device::~Device() {
     vkDeviceWaitIdle(device);
     vkDestroyDevice(device, nullptr);
+}
+
+
+PhysicalDevice &Device::getPhysicalDevice() {
+    return physicalDevice;
 }
 
 
