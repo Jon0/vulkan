@@ -24,6 +24,7 @@ file(GLOB VULKAN_FILES
 	"memory.cpp"
 	"pipeline.cpp"
 	"renderpass.cpp"
+	"shader.cpp"
 	"surface.cpp"
 	"swapchain.cpp"
 	"uniform.cpp"

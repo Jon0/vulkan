@@ -90,7 +90,7 @@ void RenderPass::initCommandPool(Device &device, Pipeline &pipeline, SwapChain &
         renderPassBeginInfo.clearValueCount = 1;
         renderPassBeginInfo.pClearValues = &clearColor;
         vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getVulkanPipeline());
+        pipeline.addInitCommands(commandBuffers[i]);
         vertexData.render(commandBuffers[i], vertices.size());
         vkCmdEndRenderPass(commandBuffers[i]);
         VkResult result = vkEndCommandBuffer(commandBuffers[i]);

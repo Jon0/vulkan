@@ -16,8 +16,6 @@ public:
     VkDevice createLogicalDevice(int graphicsFamily);
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-
-
 private:
     VkPhysicalDevice physicalDevice;
     int graphicsFamily;

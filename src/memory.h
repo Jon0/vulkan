@@ -13,6 +13,8 @@ class Memory {
 public:
     Memory(PhysicalDevice &physicalDevice, VkDevice &dev, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
     ~Memory();
+
+    VkBuffer &getBuffer();
     void copyData(const void *newData);
 
 

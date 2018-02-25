@@ -4,9 +4,22 @@
 #include "pipeline.h"
 
 
+void PipelineBuilder::addShader(const VkShaderStageFlagBits type, const ShaderFile &file) {
+
+}
+
+
+void PipelineBuilder::construct(Device &device) {
+
+
+
+}
+
+
 Pipeline::Pipeline(Device &device, const VkExtent2D &swapChainExtent, VkRenderPass &renderPass)
     :
-    vulkanDevice {device.getVulkanDevice()} {
+    vulkanDevice {device.getVulkanDevice()},
+    descriptorPool {device} {
     vertShaderModule = device.loadShaderModule("shaders/vert.spv");
     fragShaderModule = device.loadShaderModule("shaders/frag.spv");
     createLayout(device.getVulkanDevice());
@@ -27,13 +40,25 @@ VkPipeline &Pipeline::getVulkanPipeline() {
 }
 
 
+void Pipeline::addInitCommands(VkCommandBuffer &commandBuffer) {
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+    descriptorPool.bind(commandBuffer, pipelineLayout);
+}
+
+
+void Pipeline::updateUniforms(const VkExtent2D &swapChainExtent) {
+    descriptorPool.getUniform().updateUniformBuffer(swapChainExtent);
+}
+
+
 void Pipeline::createLayout(VkDevice &device) {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 0; // Optional
-    pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
     pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
     pipelineLayoutInfo.pPushConstantRanges = 0; // Optional
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &descriptorPool.getUniform().getDescriptorSetLayout();
+
 
     VkResult result = vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
     if (result != VK_SUCCESS) {
@@ -82,8 +107,8 @@ void Pipeline::setup(VkDevice &device, const VkExtent2D &swapChainExtent, VkRend
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
-    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterizer.cullMode = VK_CULL_MODE_NONE; //VK_CULL_MODE_BACK_BIT;
+    rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
     rasterizer.depthBiasConstantFactor = 0.0f; // Optional
     rasterizer.depthBiasClamp = 0.0f; // Optional
@@ -162,6 +187,7 @@ void Pipeline::setup(VkDevice &device, const VkExtent2D &swapChainExtent, VkRend
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
     pipelineInfo.basePipelineIndex = -1; // Optional
+
 
     VkResult result = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline);
     if (result != VK_SUCCESS) {

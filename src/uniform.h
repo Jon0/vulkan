@@ -30,12 +30,31 @@ public:
     void createUniformBuffer();
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
+    VkBuffer &getBuffer();
+    VkDescriptorSetLayout &getDescriptorSetLayout();
     void updateUniformBuffer(const VkExtent2D &swapChainExtent);
 
 private:
     Memory uniformMemory;
     VkDevice &device;
     VkDescriptorSetLayout descriptorSetLayout;
-    VkPipelineLayout pipelineLayout;
+
+};
+
+
+class DescriptorPool {
+public:
+    DescriptorPool(Device &deviceObj);
+    ~DescriptorPool();
+
+
+    Uniform &getUniform();
+    void bind(VkCommandBuffer &commandBuffer, VkPipelineLayout &pipelineLayout);
+
+private:
+    VkDevice &device;
+    Uniform uniform;
+    VkDescriptorPool descriptorPool;
+    VkDescriptorSet descriptorSet;
 
 };

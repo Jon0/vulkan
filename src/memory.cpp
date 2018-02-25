@@ -41,6 +41,11 @@ Memory::~Memory() {
 }
 
 
+VkBuffer &Memory::getBuffer() {
+    return vertexBuffer;
+}
+
+
 void Memory::copyData(const void *newData) {
     void* data;
     vkMapMemory(device, vertexBufferMemory, 0, bufferSize, 0, &data);
