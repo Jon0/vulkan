@@ -12,7 +12,7 @@ class ShaderFile {
 public:
     ShaderFile(const std::string &filepath);
     ~ShaderFile();
-    bool createModule(VkDevice &device, VkShaderModule &shaderModule);
+    bool createModule(VkDevice &device, VkShaderModule &shaderModule) const;
 
 private:
     size_t fileSize;

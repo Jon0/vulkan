@@ -40,21 +40,3 @@ private:
     VkDescriptorSetLayout descriptorSetLayout;
 
 };
-
-
-class DescriptorPool {
-public:
-    DescriptorPool(Device &deviceObj);
-    ~DescriptorPool();
-
-
-    Uniform &getUniform();
-    void bind(VkCommandBuffer &commandBuffer, VkPipelineLayout &pipelineLayout);
-
-private:
-    VkDevice &device;
-    Uniform uniform;
-    VkDescriptorPool descriptorPool;
-    VkDescriptorSet descriptorSet;
-
-};

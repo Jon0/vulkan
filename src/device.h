@@ -33,8 +33,6 @@ public:
     VkQueue &getGraphicsQueue();
     int getGraphicsFamily() const;
 
-    VkShaderModule loadShaderModule(const std::string &filepath);
-
     /*
      * returns initialised commandPool
      */

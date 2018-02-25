@@ -16,7 +16,7 @@ ShaderFile::ShaderFile(const std::string &filepath) {
     file.seekg(0);
     file.read(code.data(), fileSize);
 
-    std::vector<uint32_t> codeAligned(code.size() / sizeof(uint32_t) + 1);
+    codeAligned.resize(code.size() / sizeof(uint32_t) + 1);
     memcpy(codeAligned.data(), code.data(), code.size());
 }
 
@@ -24,7 +24,7 @@ ShaderFile::ShaderFile(const std::string &filepath) {
 ShaderFile::~ShaderFile() {}
 
 
-bool ShaderFile::createModule(VkDevice &device, VkShaderModule &shaderModule) {
+bool ShaderFile::createModule(VkDevice &device, VkShaderModule &shaderModule) const {
 
     VkShaderModuleCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;

@@ -1,6 +1,4 @@
-#include <cstring>
 #include <iostream>
-#include <fstream>
 
 #include "device.h"
 
@@ -119,35 +117,6 @@ VkQueue &Device::getGraphicsQueue() {
 
 int Device::getGraphicsFamily() const {
     return graphicsFamily;
-}
-
-
-VkShaderModule Device::loadShaderModule(const std::string &filepath) {
-    std::ifstream file(filepath, std::ios::ate | std::ios::binary);
-    if (!file.is_open()) {
-        std::cout << "failed to open file " << filepath << std::endl;
-    }
-
-
-    size_t fileSize = (size_t) file.tellg();
-    std::vector<char> code(fileSize);
-    file.seekg(0);
-    file.read(code.data(), fileSize);
-
-
-    VkShaderModuleCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize = code.size();
-
-    std::vector<uint32_t> codeAligned(code.size() / sizeof(uint32_t) + 1);
-    memcpy(codeAligned.data(), code.data(), code.size());
-    createInfo.pCode = codeAligned.data();
-
-    VkShaderModule shaderModule;
-    if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-        std::cout << "Failed to create shader module" << std::endl;
-    }
-    return shaderModule;
 }
 
 

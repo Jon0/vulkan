@@ -16,6 +16,8 @@ public:
     RenderPass(Device &device, const VkFormat &swapChainImageFormat);
     ~RenderPass();
 
+    void setup(Device &device);
+
     VkRenderPass &getVulkanRenderPass();
     void initCommandPool(Device &device, Pipeline &pipeline, SwapChain &swapChain);
     void renderFrame(Device &device, VkSwapchainKHR &swapChain);

@@ -60,20 +60,23 @@ int main(int argc, const char *argv[]) {
 
     // create swap chain using window surface
     SwapChain swapChain(device.getVulkanDevice(), surface);
+
+    // render pass is a pipeline component
     RenderPass renderPass(device, swapChain.getImageFormat());
     swapChain.createFrameBuffers(device.getVulkanDevice(), renderPass.getVulkanRenderPass());
-
 
     // new pipeline setup
     PipelineBuilder pipelineBuilder;
     pipelineBuilder.addShader(VK_SHADER_STAGE_VERTEX_BIT, ShaderFile("shaders/vert.spv"));
     pipelineBuilder.addShader(VK_SHADER_STAGE_FRAGMENT_BIT, ShaderFile("shaders/frag.spv"));
-
-
-
+    pipelineBuilder.addUniform(std::make_shared<Uniform>(device));
+    pipelineBuilder.setOutputImageExtent(swapChain.getExtent());
+    pipelineBuilder.setRenderPass(renderPass.getVulkanRenderPass());
 
     // setup pipeline
-    Pipeline pipeline(device, swapChain.getExtent(), renderPass.getVulkanRenderPass());
+    Pipeline pipeline(device.getVulkanDevice());
+    pipelineBuilder.construct(pipeline);
+
     renderPass.initCommandPool(device, pipeline, swapChain);
 
     int frames = 0;
@@ -82,14 +85,14 @@ int main(int argc, const char *argv[]) {
          window.pollEvents();
          pipeline.updateUniforms(swapChain.getExtent());
          renderPass.renderFrame(device, swapChain.getSwapChain());
-    //     frames++;
-         std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(50));
+         std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(5));
+         frames++;
     }
 
-    // auto end = std::chrono::system_clock::now();
-    // std::chrono::duration<double> diff = end - start;
-    // double fps = (double) frames / diff.count();
-    // std::cout << "rendered " << frames << " in " << diff.count() << " (" << fps << " fps)" << std::endl;
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> diff = end - start;
+    double fps = (double) frames / diff.count();
+    std::cout << "rendered " << frames << " frames in " << diff.count() << " seconds (" << fps << " fps)" << std::endl;
 
     return 0;
 }

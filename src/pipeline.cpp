@@ -5,32 +5,53 @@
 
 
 void PipelineBuilder::addShader(const VkShaderStageFlagBits type, const ShaderFile &file) {
-
+    shaders.emplace(std::make_pair(type, file));
 }
 
 
-void PipelineBuilder::construct(Device &device) {
-
-
-
+void PipelineBuilder::addUniform(const std::shared_ptr<Uniform> &uniform) {
+    uniforms.push_back(uniform);
 }
 
 
-Pipeline::Pipeline(Device &device, const VkExtent2D &swapChainExtent, VkRenderPass &renderPass)
+void PipelineBuilder::setInputVertexFormat() {}
+
+
+void PipelineBuilder::setOutputImageExtent(const VkExtent2D &extent) {
+    outputExtent = extent;
+}
+
+
+void PipelineBuilder::setRenderPass(const VkRenderPass &pass) {
+    renderPass = pass;
+}
+
+
+void PipelineBuilder::construct(Pipeline &pipeline) {
+    pipeline.setupShaders(shaders);
+    pipeline.setupDescriptorPool(uniforms);
+    pipeline.setupLayout();
+    pipeline.setupPipeline(outputExtent, renderPass);
+}
+
+
+Pipeline::Pipeline(VkDevice &device)
     :
-    vulkanDevice {device.getVulkanDevice()},
-    descriptorPool {device} {
-    vertShaderModule = device.loadShaderModule("shaders/vert.spv");
-    fragShaderModule = device.loadShaderModule("shaders/frag.spv");
-    createLayout(device.getVulkanDevice());
-    setup(device.getVulkanDevice(), swapChainExtent, renderPass);
+    vulkanDevice {device} {
+    //createLayout(device.getVulkanDevice());
+    //setup(device.getVulkanDevice(), swapChainExtent, renderPass);
 }
 
 
 Pipeline::~Pipeline() {
+    uniforms.clear();
+    vkDestroyDescriptorPool(vulkanDevice, descriptorPool, nullptr);
     vkDestroyPipeline(vulkanDevice, graphicsPipeline, nullptr);
-    vkDestroyShaderModule(vulkanDevice, fragShaderModule, nullptr);
-    vkDestroyShaderModule(vulkanDevice, vertShaderModule, nullptr);
+
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+    for (auto &shaderModule : shaderModules) {
+        vkDestroyShaderModule(vulkanDevice, shaderModule.second, nullptr);
+    }
     vkDestroyPipelineLayout(vulkanDevice, pipelineLayout, nullptr);
 }
 
@@ -42,45 +63,110 @@ VkPipeline &Pipeline::getVulkanPipeline() {
 
 void Pipeline::addInitCommands(VkCommandBuffer &commandBuffer) {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-    descriptorPool.bind(commandBuffer, pipelineLayout);
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 }
 
 
 void Pipeline::updateUniforms(const VkExtent2D &swapChainExtent) {
-    descriptorPool.getUniform().updateUniformBuffer(swapChainExtent);
+    for (auto &uniform : uniforms) {
+        uniform->updateUniformBuffer(swapChainExtent);
+    }
 }
 
 
-void Pipeline::createLayout(VkDevice &device) {
+void Pipeline::setupShaders(const std::unordered_map<VkShaderStageFlagBits, const ShaderFile> &shaders) {
+    for (auto &shader : shaders) {
+        VkShaderModule newModule;
+        shader.second.createModule(vulkanDevice, newModule);
+        shaderModules.emplace(std::pair(shader.first, newModule));
+    }
+}
+
+
+void Pipeline::setupDescriptorPool(const std::vector<std::shared_ptr<Uniform>> &uniformData) {
+    uniforms = uniformData;
+
+    // attach uniform
+    VkDescriptorPoolSize poolSize = {};
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize.descriptorCount = 1;
+
+    VkDescriptorPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = 1;
+
+    if (vkCreateDescriptorPool(vulkanDevice, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create descriptor pool!");
+    }
+
+    std::vector<VkDescriptorSetLayout> layouts;
+    std::vector<VkDescriptorBufferInfo> bufferArray;
+    for (auto &uniform : uniforms) {
+        VkDescriptorBufferInfo bufferInfo = {};
+        bufferInfo.buffer = uniform->getBuffer();
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(UniformBufferObject);
+        bufferArray.push_back(bufferInfo);
+        layouts.push_back(uniform->getDescriptorSetLayout());
+    }
+
+    VkDescriptorSetAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = descriptorPool;
+    allocInfo.descriptorSetCount = layouts.size();
+    allocInfo.pSetLayouts = layouts.data();
+
+    if (vkAllocateDescriptorSets(vulkanDevice, &allocInfo, &descriptorSet) != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate descriptor set!");
+    }
+
+    VkWriteDescriptorSet descriptorWrite = {};
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = descriptorSet;
+    descriptorWrite.dstBinding = 0;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrite.descriptorCount = bufferArray.size();
+    descriptorWrite.pBufferInfo = bufferArray.data();
+    descriptorWrite.pImageInfo = nullptr; // Optional
+    descriptorWrite.pTexelBufferView = nullptr; // Optional
+
+    vkUpdateDescriptorSets(vulkanDevice, 1, &descriptorWrite, 0, nullptr);
+}
+
+
+void Pipeline::setupLayout() {
+    std::vector<VkDescriptorSetLayout> layouts;
+    for (auto &uniform : uniforms) {
+        layouts.push_back(uniform->getDescriptorSetLayout());
+    }
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
     pipelineLayoutInfo.pPushConstantRanges = 0; // Optional
-    pipelineLayoutInfo.setLayoutCount = 1;
-    pipelineLayoutInfo.pSetLayouts = &descriptorPool.getUniform().getDescriptorSetLayout();
+    pipelineLayoutInfo.setLayoutCount = layouts.size();
+    pipelineLayoutInfo.pSetLayouts = layouts.data();
 
-
-    VkResult result = vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
+    VkResult result = vkCreatePipelineLayout(vulkanDevice, &pipelineLayoutInfo, nullptr, &pipelineLayout);
     if (result != VK_SUCCESS) {
         std::cout << "Failed to create pipeline layout" << std::endl;
     }
 }
 
 
-void Pipeline::setup(VkDevice &device, const VkExtent2D &swapChainExtent, VkRenderPass &renderPass) {
-    VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
-    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-    vertShaderStageInfo.module = vertShaderModule;
-    vertShaderStageInfo.pName = "main";
-
-    VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
-    fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    fragShaderStageInfo.module = fragShaderModule;
-    fragShaderStageInfo.pName = "main";
-
-    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+void Pipeline::setupPipeline(const VkExtent2D &swapChainExtent, VkRenderPass &renderPass) {
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+    for (auto &shaderModule : shaderModules) {
+        VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
+        vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertShaderStageInfo.stage = shaderModule.first;
+        vertShaderStageInfo.module = shaderModule.second;
+        vertShaderStageInfo.pName = "main";
+        shaderStages.push_back(vertShaderStageInfo);
+    }
 
     VkViewport viewport = {};
     viewport.x = 0.0f;
@@ -172,8 +258,8 @@ void Pipeline::setup(VkDevice &device, const VkExtent2D &swapChainExtent, VkRend
 
     VkGraphicsPipelineCreateInfo pipelineInfo = {};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.stageCount = 2;
-    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.stageCount = shaderStages.size();
+    pipelineInfo.pStages = shaderStages.data();
     pipelineInfo.pVertexInputState = &vertexInputInfo;
     pipelineInfo.pInputAssemblyState = &inputAssembly;
     pipelineInfo.pViewportState = &viewportState;
@@ -189,7 +275,7 @@ void Pipeline::setup(VkDevice &device, const VkExtent2D &swapChainExtent, VkRend
     pipelineInfo.basePipelineIndex = -1; // Optional
 
 
-    VkResult result = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline);
+    VkResult result = vkCreateGraphicsPipelines(vulkanDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline);
     if (result != VK_SUCCESS) {
         std::cout << "Failed to create graphics pipeline" << std::endl;
     }

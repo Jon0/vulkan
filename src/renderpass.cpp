@@ -63,6 +63,11 @@ RenderPass::~RenderPass() {
 }
 
 
+void RenderPass::setup(Device &device) {
+
+}
+
+
 VkRenderPass &RenderPass::getVulkanRenderPass() {
     return renderPass;
 }
@@ -89,6 +94,7 @@ void RenderPass::initCommandPool(Device &device, Pipeline &pipeline, SwapChain &
         VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
         renderPassBeginInfo.clearValueCount = 1;
         renderPassBeginInfo.pClearValues = &clearColor;
+
         vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
         pipeline.addInitCommands(commandBuffers[i]);
         vertexData.render(commandBuffers[i], vertices.size());
