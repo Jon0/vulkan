@@ -22,13 +22,14 @@ VulkanInstance::VulkanInstance(bool enableValidation) {
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
     std::vector<VkExtensionProperties> extensions(extensionCount);
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-    std::cout << extensionCount << " Extensions supported:" << std::endl;
+    std::cout << extensionCount << " Instance Extensions supported:" << std::endl;
     for (const auto &extension: extensions) {
         std::cout << "\t" << extension.extensionName << std::endl;
     }
 
     // check required extensions
     std::vector<const char*> requiredExtensions;
+    //requiredExtensions.push_back("VK_KHR_swapchain");
     requiredExtensions.push_back("VK_EXT_debug_report");
     unsigned int glfwExtensionCount = 0;
     const char** glfwExtensions;

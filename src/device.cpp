@@ -44,6 +44,20 @@ VkDevice PhysicalDevice::createLogicalDevice(int graphicsFamily) {
     queueInfo.queueCount = 1;
     queueInfo.pQueuePriorities = &priorities[0];
 
+
+
+    uint32_t extensionCount = 0;
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
+    std::vector<VkExtensionProperties> extensions(extensionCount);
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, extensions.data());
+    std::cout << extensionCount << " Device Extensions supported:" << std::endl;
+    for (const auto &extension: extensions) {
+        std::cout << "\t" << extension.extensionName << std::endl;
+    }
+
+    std::vector<const char*> requiredExtensions;
+    requiredExtensions.push_back("VK_KHR_swapchain");
+
     VkPhysicalDeviceFeatures deviceFeatures = {};
     VkDeviceCreateInfo deviceInfo = {};
     deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -52,8 +66,8 @@ VkDevice PhysicalDevice::createLogicalDevice(int graphicsFamily) {
     deviceInfo.pQueueCreateInfos = &queueInfo;
     deviceInfo.queueCreateInfoCount = 1;
     deviceInfo.pEnabledFeatures = &deviceFeatures;
-    //deviceInfo.enabledExtensionCount = glfwExtensionCount;
-    //deviceInfo.ppEnabledExtensionNames = glfwExtensions;
+    deviceInfo.enabledExtensionCount = requiredExtensions.size();
+    deviceInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
     VkDevice device;
     VkResult result = vkCreateDevice(physicalDevice, &deviceInfo, nullptr, &device);
