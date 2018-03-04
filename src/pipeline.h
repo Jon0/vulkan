@@ -17,24 +17,18 @@ public:
     Pipeline(VkDevice &device);
     ~Pipeline();
 
+    VkPipelineLayout &getLayout();
     VkPipeline &getVulkanPipeline();
-    void addInitCommands(VkCommandBuffer &commandBuffer);
-    void updateUniforms(const VkExtent2D &swapChainExtent);
+    VkPipeline &getDescriptorPool();
 
     void setupShaders(const std::unordered_map<VkShaderStageFlagBits, const ShaderFile> &shaders);
-    void setupDescriptorPool(const std::vector<std::shared_ptr<Uniform>> &uniformData);
-    void setupLayout();
+    void setupLayout(const std::vector<VkDescriptorSetLayout> &layouts);
     void setupPipeline(const VkExtent2D &swapChainExtent, VkRenderPass &renderPass);
 
 private:
     VkDevice vulkanDevice;
 
     std::unordered_map<VkShaderStageFlagBits, VkShaderModule> shaderModules;
-    std::vector<std::shared_ptr<Uniform>> uniforms;
-
-    // uniforms
-    VkDescriptorPool descriptorPool;
-    VkDescriptorSet descriptorSet;
 
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
@@ -44,7 +38,7 @@ private:
 class PipelineBuilder {
 public:
     void addShader(const VkShaderStageFlagBits type, const ShaderFile &file);
-    void addUniform(const std::shared_ptr<Uniform> &uniform);
+    void addDescriptorSetLayouts(const std::vector<VkDescriptorSetLayout> &layouts);
     void setInputVertexFormat();
     void setOutputImageExtent(const VkExtent2D &extent);
     void setRenderPass(const VkRenderPass &pass);
@@ -53,7 +47,7 @@ public:
 
 private:
     std::unordered_map<VkShaderStageFlagBits, const ShaderFile> shaders;
-    std::vector<std::shared_ptr<Uniform>> uniforms;
+    std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
     VkExtent2D outputExtent;
     VkFormat outputFormat;
     VkRenderPass renderPass;

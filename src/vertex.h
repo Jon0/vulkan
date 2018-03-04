@@ -9,6 +9,8 @@
 #include <glm/glm.hpp>
 
 #include "memory.h"
+#include "pipeline.h"
+#include "uniform.h"
 
 
 struct Vertex {
@@ -60,15 +62,37 @@ const std::vector<uint16_t> indices = {
 };
 
 
+/*
+ * contains uniform data
+ */
+class GeometryInstance {
+public:
+    GeometryInstance();
+
+private:
+
+};
+
+
 class GeometryBuffer {
 public:
     GeometryBuffer(Device &deviceObj);
+    ~GeometryBuffer();
+
+    std::vector<VkDescriptorSetLayout> getDescriptorSetLayouts();
+
     void copyData(Device &deviceObj);
+
+    void setupDescriptorPool();
+
+    void setupDescriptorSet();
 
     /*
      * submit drawing commands to queue
      */
-    void render(VkCommandBuffer &commandBuffer);
+    void render(VkCommandBuffer &commandBuffer, Pipeline &pipeline);
+
+    void update(const VkExtent2D &swapChainExtent);
 
 private:
     VkDevice &device;
@@ -76,6 +100,13 @@ private:
     VkDeviceSize indexBufferSize;
     Memory vertexBuffer;
     Memory indexBuffer;
+    Uniform uniformBuffer;
+
+    // uniform bindings
+    VkDescriptorPool descriptorPool;
+
+    // should be per renderable instance
+    std::vector<VkDescriptorSet> descriptorSets;
 
     std::vector<Vertex> verts;
     std::vector<uint16_t> inds;

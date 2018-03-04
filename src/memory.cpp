@@ -35,9 +35,10 @@ Memory::Memory(PhysicalDevice &physicalDevice, VkDevice &dev, VkDeviceSize size,
     vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
 }
 
+
 Memory::~Memory() {
-    vkDestroyBuffer(device, vertexBuffer, nullptr);
     vkFreeMemory(device, vertexBufferMemory, nullptr);
+    vkDestroyBuffer(device, vertexBuffer, nullptr);
 }
 
 
@@ -47,9 +48,14 @@ VkBuffer &Memory::getBuffer() {
 
 
 void Memory::copyData(const void *newData) {
+    copyDataTo(newData, 0, bufferSize);
+}
+
+
+void Memory::copyDataTo(const void *newData, size_t offset, size_t count) {
     void* data;
-    vkMapMemory(device, vertexBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, newData, (size_t) bufferSize);
+    vkMapMemory(device, vertexBufferMemory, offset, count, 0, &data);
+    memcpy(data, newData, (size_t) count);
     vkUnmapMemory(device, vertexBufferMemory);
 }
 

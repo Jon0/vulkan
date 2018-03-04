@@ -31,10 +31,12 @@ public:
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
     VkBuffer &getBuffer();
-    VkDescriptorSetLayout &getDescriptorSetLayout();
+    std::vector<VkDescriptorBufferInfo> getDescriptorBufferInfo();
+    std::vector<VkDescriptorSetLayout> getDescriptorSetLayout();
     void updateUniformBuffer(const VkExtent2D &swapChainExtent);
 
 private:
+    uint32_t instanceCount;
     Memory uniformMemory;
     VkDevice &device;
     VkDescriptorSetLayout descriptorSetLayout;

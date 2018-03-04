@@ -98,8 +98,7 @@ void RenderPass::initCommandPool(Device &device, GeometryBuffer &geometry, Pipel
         renderPassBeginInfo.pClearValues = &clearColor;
 
         vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-        pipeline.addInitCommands(commandBuffers[i]);
-        geometry.render(commandBuffers[i]);
+        geometry.render(commandBuffers[i], pipeline);
         vkCmdEndRenderPass(commandBuffers[i]);
         VkResult result = vkEndCommandBuffer(commandBuffers[i]);
         if (result != VK_SUCCESS) {

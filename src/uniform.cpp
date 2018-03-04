@@ -6,18 +6,19 @@
 
 Uniform::Uniform(Device &deviceObj)
     :
+    instanceCount {8},
     device{deviceObj.getVulkanDevice()},
-    uniformMemory{
+    uniformMemory {
         deviceObj.getPhysicalDevice(),
         deviceObj.getVulkanDevice(),
-        sizeof(UniformBufferObject),
+        sizeof(UniformBufferObject) * instanceCount,
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
     } {
 
     VkDescriptorSetLayoutBinding uboLayoutBinding = {};
     uboLayoutBinding.binding = 0;
-    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
     uboLayoutBinding.descriptorCount = 1;
     uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
@@ -45,8 +46,25 @@ VkBuffer &Uniform::getBuffer() {
 }
 
 
-VkDescriptorSetLayout &Uniform::getDescriptorSetLayout() {
-    return descriptorSetLayout;
+std::vector<VkDescriptorBufferInfo> Uniform::getDescriptorBufferInfo() {
+    std::vector<VkDescriptorBufferInfo> result;
+    for (size_t i = 0; i < instanceCount; ++i) {
+        VkDescriptorBufferInfo bufferInfo = {};
+        bufferInfo.buffer = uniformMemory.getBuffer();
+        bufferInfo.offset = sizeof(UniformBufferObject) * i;
+        bufferInfo.range = sizeof(UniformBufferObject);
+        result.push_back(bufferInfo);
+    }
+    return result;
+}
+
+
+std::vector<VkDescriptorSetLayout> Uniform::getDescriptorSetLayout() {
+    std::vector<VkDescriptorSetLayout> result;
+    for (size_t i = 0; i < instanceCount; ++i) {
+        result.push_back(descriptorSetLayout);
+    }
+    return result;
 }
 
 
@@ -58,8 +76,11 @@ void Uniform::updateUniformBuffer(const VkExtent2D &swapChainExtent) {
 
     float aspectRatio = swapChainExtent.width / (float) swapChainExtent.height;
     UniformBufferObject ubo = {};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    ubo.view = glm::lookAt(glm::vec3(4.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 10.0f);
-    uniformMemory.copyData(&ubo);
+
+    for (size_t i = 0; i < instanceCount; ++i) {
+        ubo.model = glm::rotate(glm::mat4(1.0f), (time * (i + 1)) * glm::radians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        ubo.view = glm::lookAt(glm::vec3(4.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        ubo.proj = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 10.0f);
+        uniformMemory.copyDataTo(&ubo, sizeof(ubo) * i, sizeof(ubo));
+    }
 }

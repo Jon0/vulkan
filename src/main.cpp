@@ -65,12 +65,17 @@ int main(int argc, const char *argv[]) {
     RenderPass renderPass(device, swapChain.getImageFormat());
     swapChain.createFrameBuffers(device.getVulkanDevice(), renderPass.getVulkanRenderPass());
 
+    // setup geometry
+    GeometryBuffer geometry(device);
+    geometry.setupDescriptorPool();
+    geometry.setupDescriptorSet();
+    geometry.copyData(device);
 
     // new pipeline setup
     PipelineBuilder pipelineBuilder;
     pipelineBuilder.addShader(VK_SHADER_STAGE_VERTEX_BIT, ShaderFile("shaders/vert.spv"));
     pipelineBuilder.addShader(VK_SHADER_STAGE_FRAGMENT_BIT, ShaderFile("shaders/frag.spv"));
-    pipelineBuilder.addUniform(std::make_shared<Uniform>(device));
+    pipelineBuilder.addDescriptorSetLayouts(geometry.getDescriptorSetLayouts());
     pipelineBuilder.setOutputImageExtent(swapChain.getExtent());
     pipelineBuilder.setRenderPass(renderPass.getVulkanRenderPass());
 
@@ -78,18 +83,16 @@ int main(int argc, const char *argv[]) {
     Pipeline pipeline(device.getVulkanDevice());
     pipelineBuilder.construct(pipeline);
 
-    GeometryBuffer geometry(device);
-    geometry.copyData(device);
     renderPass.initCommandPool(device, geometry, pipeline, swapChain);
 
     int frames = 0;
     auto start = std::chrono::system_clock::now();
     while(!window.shouldClose()) {
-         window.pollEvents();
-         pipeline.updateUniforms(swapChain.getExtent());
-         renderPass.renderFrame(device, swapChain.getSwapChain());
-         //std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(5));
-         frames++;
+        window.pollEvents();
+        geometry.update(swapChain.getExtent());
+        renderPass.renderFrame(device, swapChain.getSwapChain());
+        //std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(5));
+        frames++;
     }
 
     auto end = std::chrono::system_clock::now();

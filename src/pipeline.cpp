@@ -9,8 +9,10 @@ void PipelineBuilder::addShader(const VkShaderStageFlagBits type, const ShaderFi
 }
 
 
-void PipelineBuilder::addUniform(const std::shared_ptr<Uniform> &uniform) {
-    uniforms.push_back(uniform);
+void PipelineBuilder::addDescriptorSetLayouts(const std::vector<VkDescriptorSetLayout> &layouts) {
+    for (auto &layout : layouts) {
+        descriptorSetLayouts.push_back(layout);
+    }
 }
 
 
@@ -29,8 +31,7 @@ void PipelineBuilder::setRenderPass(const VkRenderPass &pass) {
 
 void PipelineBuilder::construct(Pipeline &pipeline) {
     pipeline.setupShaders(shaders);
-    pipeline.setupDescriptorPool(uniforms);
-    pipeline.setupLayout();
+    pipeline.setupLayout(descriptorSetLayouts);
     pipeline.setupPipeline(outputExtent, renderPass);
 }
 
@@ -44,8 +45,6 @@ Pipeline::Pipeline(VkDevice &device)
 
 
 Pipeline::~Pipeline() {
-    uniforms.clear();
-    vkDestroyDescriptorPool(vulkanDevice, descriptorPool, nullptr);
     vkDestroyPipeline(vulkanDevice, graphicsPipeline, nullptr);
 
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
@@ -56,21 +55,13 @@ Pipeline::~Pipeline() {
 }
 
 
+VkPipelineLayout &Pipeline::getLayout() {
+    return pipelineLayout;
+}
+
+
 VkPipeline &Pipeline::getVulkanPipeline() {
     return graphicsPipeline;
-}
-
-
-void Pipeline::addInitCommands(VkCommandBuffer &commandBuffer) {
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-}
-
-
-void Pipeline::updateUniforms(const VkExtent2D &swapChainExtent) {
-    for (auto &uniform : uniforms) {
-        uniform->updateUniformBuffer(swapChainExtent);
-    }
 }
 
 
@@ -83,66 +74,7 @@ void Pipeline::setupShaders(const std::unordered_map<VkShaderStageFlagBits, cons
 }
 
 
-void Pipeline::setupDescriptorPool(const std::vector<std::shared_ptr<Uniform>> &uniformData) {
-    uniforms = uniformData;
-
-    // attach uniform
-    VkDescriptorPoolSize poolSize = {};
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSize.descriptorCount = 1;
-
-    VkDescriptorPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
-    poolInfo.maxSets = 1;
-
-    if (vkCreateDescriptorPool(vulkanDevice, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create descriptor pool!");
-    }
-
-    std::vector<VkDescriptorSetLayout> layouts;
-    std::vector<VkDescriptorBufferInfo> bufferArray;
-    for (auto &uniform : uniforms) {
-        VkDescriptorBufferInfo bufferInfo = {};
-        bufferInfo.buffer = uniform->getBuffer();
-        bufferInfo.offset = 0;
-        bufferInfo.range = sizeof(UniformBufferObject);
-        bufferArray.push_back(bufferInfo);
-        layouts.push_back(uniform->getDescriptorSetLayout());
-    }
-
-    VkDescriptorSetAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = descriptorPool;
-    allocInfo.descriptorSetCount = layouts.size();
-    allocInfo.pSetLayouts = layouts.data();
-
-    if (vkAllocateDescriptorSets(vulkanDevice, &allocInfo, &descriptorSet) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate descriptor set!");
-    }
-
-    VkWriteDescriptorSet descriptorWrite = {};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = descriptorSet;
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrite.descriptorCount = bufferArray.size();
-    descriptorWrite.pBufferInfo = bufferArray.data();
-    descriptorWrite.pImageInfo = nullptr; // Optional
-    descriptorWrite.pTexelBufferView = nullptr; // Optional
-
-    vkUpdateDescriptorSets(vulkanDevice, 1, &descriptorWrite, 0, nullptr);
-}
-
-
-void Pipeline::setupLayout() {
-    std::vector<VkDescriptorSetLayout> layouts;
-    for (auto &uniform : uniforms) {
-        layouts.push_back(uniform->getDescriptorSetLayout());
-    }
-
+void Pipeline::setupLayout(const std::vector<VkDescriptorSetLayout> &layouts) {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional

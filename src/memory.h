@@ -16,6 +16,7 @@ public:
 
     VkBuffer &getBuffer();
     void copyData(const void *newData);
+    void copyDataTo(const void *newData, size_t offset, size_t count);
 
     /*
      * queues copying to device memory
