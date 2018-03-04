@@ -105,6 +105,9 @@ Device::Device(VkPhysicalDevice &physDevice)
 
     device = physicalDevice.createLogicalDevice(graphicsFamily);
     vkGetDeviceQueue(device, graphicsFamily, 0, &graphicsQueue);
+
+
+    commandQueue = std::make_unique<DeviceQueue>(device, graphicsFamily);
 }
 
 
@@ -134,15 +137,8 @@ int Device::getGraphicsFamily() const {
 }
 
 
-void Device::createCommandPool(VkCommandPool &commandPool) {
-    VkCommandPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = graphicsFamily;
-    poolInfo.flags = 0; // Optional
-    VkResult result = vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool);
-    if (result != VK_SUCCESS) {
-        std::cout << "Failed to create command pool" << std::endl;
-    }
+DeviceQueue &Device::getQueue() {
+    return *commandQueue.get();
 }
 
 
@@ -154,4 +150,57 @@ void Device::createSemaphore(VkSemaphore &semaphore) {
     if (result != VK_SUCCESS) {
         std::cout << "failed to create semaphore!" << std::endl;
     }
+}
+
+
+DeviceQueue::DeviceQueue(VkDevice &device, int queueFamily)
+    :
+    device {device} {
+    vkGetDeviceQueue(device, queueFamily, 0, &queue);
+
+    VkCommandPoolCreateInfo poolInfo = {};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = queueFamily;
+    poolInfo.flags = 0; // Optional
+
+    VkResult result = vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool);
+    if (result != VK_SUCCESS) {
+        std::cout << "Failed to create command pool" << std::endl;
+    }
+}
+
+
+DeviceQueue::~DeviceQueue() {
+    vkDestroyCommandPool(device, commandPool, nullptr);
+}
+
+
+void DeviceQueue::allocateCommandBuffers(VkCommandBuffer *commandBuffers, size_t bufferCount) {
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = commandPool;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = (uint32_t) bufferCount;
+
+    VkResult result = vkAllocateCommandBuffers(device, &allocInfo, commandBuffers);
+    if (result != VK_SUCCESS) {
+        std::cout << "Failed to allocate command buffers" << std::endl;
+    }
+}
+
+
+void DeviceQueue::freeCommandBuffers(VkCommandBuffer *commandBuffers, size_t bufferCount) {
+    vkFreeCommandBuffers(device, commandPool, bufferCount, commandBuffers);
+}
+
+
+void DeviceQueue::submit(VkSubmitInfo &submitInfo, const VkFence &fence) {
+    if (vkQueueSubmit(queue, 1, &submitInfo, fence) != VK_SUCCESS) {
+        std::cout << "failed to submit draw command buffer!" << std::endl;
+    }
+}
+
+
+void DeviceQueue::waitIdle() const {
+    vkQueueWaitIdle(queue);
 }

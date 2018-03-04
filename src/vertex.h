@@ -8,6 +8,8 @@
 
 #include <glm/glm.hpp>
 
+#include "memory.h"
+
 
 struct Vertex {
     glm::vec3 pos;
@@ -38,8 +40,44 @@ struct Vertex {
 };
 
 
-const std::vector<Vertex> vertices = {
+const std::vector<Vertex> triangle = {
     {{0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
     {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
     {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
+};
+
+
+const std::vector<Vertex> vertices = {
+    {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}}
+};
+
+
+const std::vector<uint16_t> indices = {
+    0, 1, 2, 2, 3, 0
+};
+
+
+class GeometryBuffer {
+public:
+    GeometryBuffer(Device &deviceObj);
+    void copyData(Device &deviceObj);
+
+    /*
+     * submit drawing commands to queue
+     */
+    void render(VkCommandBuffer &commandBuffer);
+
+private:
+    VkDevice &device;
+    VkDeviceSize vertexBufferSize;
+    VkDeviceSize indexBufferSize;
+    Memory vertexBuffer;
+    Memory indexBuffer;
+
+    std::vector<Vertex> verts;
+    std::vector<uint16_t> inds;
+
 };

@@ -29,7 +29,6 @@ VulkanInstance::VulkanInstance(bool enableValidation) {
 
     // check required extensions
     std::vector<const char*> requiredExtensions;
-    //requiredExtensions.push_back("VK_KHR_swapchain");
     requiredExtensions.push_back("VK_EXT_debug_report");
     unsigned int glfwExtensionCount = 0;
     const char** glfwExtensions;

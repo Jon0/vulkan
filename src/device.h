@@ -1,10 +1,28 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
+
+class DeviceQueue {
+public:
+    DeviceQueue(VkDevice &device, int queueFamily);
+    ~DeviceQueue();
+    void allocateCommandBuffers(VkCommandBuffer *commandBuffers, size_t bufferCount);
+    void freeCommandBuffers(VkCommandBuffer *commandBuffers, size_t bufferCount);
+    void submit(VkSubmitInfo &submitInfo, const VkFence &fence);
+    void waitIdle() const;
+
+private:
+    VkDevice &device;
+    VkQueue queue;
+    VkCommandPool commandPool;
+
+};
 
 
 class PhysicalDevice {
@@ -36,7 +54,12 @@ public:
     /*
      * returns initialised commandPool
      */
-    void createCommandPool(VkCommandPool &commandPool);
+    DeviceQueue &getQueue();
+
+
+    /*
+     * construct vulkan semaphore
+     */
     void createSemaphore(VkSemaphore &semaphore);
 
 private:
@@ -45,4 +68,6 @@ private:
     VkQueue graphicsQueue;
     int graphicsFamily;
     int displayFamily;
+    std::unique_ptr<DeviceQueue> commandQueue;
+
 };

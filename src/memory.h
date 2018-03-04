@@ -17,11 +17,10 @@ public:
     VkBuffer &getBuffer();
     void copyData(const void *newData);
 
-
     /*
-     * submit drawing commands to queue
+     * queues copying to device memory
      */
-    void render(VkCommandBuffer &commandBuffer, uint32_t count);
+    void copyFromBuffer(DeviceQueue &queue, const Memory &mem);
 
 private:
     VkDevice &device;

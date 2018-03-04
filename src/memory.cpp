@@ -54,9 +54,30 @@ void Memory::copyData(const void *newData) {
 }
 
 
-void Memory::render(VkCommandBuffer &commandBuffer, uint32_t count) {
-    VkBuffer vertexBuffers[] = {vertexBuffer};
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-    vkCmdDraw(commandBuffer, static_cast<uint32_t>(count), 1, 0, 0);
+void Memory::copyFromBuffer(DeviceQueue &queue, const Memory &mem) {
+    VkCommandBuffer commandBuffer;
+    queue.allocateCommandBuffers(&commandBuffer, 1);
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    VkBufferCopy copyRegion = {};
+    copyRegion.srcOffset = 0; // Optional
+    copyRegion.dstOffset = 0; // Optional
+    copyRegion.size = bufferSize;
+    vkCmdCopyBuffer(commandBuffer, mem.vertexBuffer, vertexBuffer, 1, &copyRegion);
+    vkEndCommandBuffer(commandBuffer);
+
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    queue.submit(submitInfo, VK_NULL_HANDLE);
+    queue.waitIdle();
+    queue.freeCommandBuffers(&commandBuffer, 1);
 }

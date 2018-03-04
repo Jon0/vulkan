@@ -9,6 +9,7 @@
 #include "memory.h"
 #include "pipeline.h"
 #include "swapchain.h"
+#include "vertex.h"
 
 
 class RenderPass {
@@ -19,12 +20,13 @@ public:
     void setup(Device &device);
 
     VkRenderPass &getVulkanRenderPass();
-    void initCommandPool(Device &device, Pipeline &pipeline, SwapChain &swapChain);
+    void initCommandPool(Device &device, GeometryBuffer &geometry, Pipeline &pipeline, SwapChain &swapChain);
     void renderFrame(Device &device, VkSwapchainKHR &swapChain);
 
 private:
     void allocateCommandBuffers(std::vector<VkCommandBuffer> &commandBuffers, VkDevice &device, size_t bufferCount);
 
+    DeviceQueue &queue;
     VkDevice device;
     VkRenderPass renderPass;
     VkCommandPool commandPool;
@@ -32,6 +34,5 @@ private:
     std::vector<VkFence> fences;
     VkSemaphore imageAvailableSemaphore;
     VkSemaphore renderFinishedSemaphore;
-    Memory vertexData;
 
 };

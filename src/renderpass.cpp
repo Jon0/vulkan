@@ -6,16 +6,8 @@
 
 RenderPass::RenderPass(Device &deviceObj, const VkFormat &swapChainImageFormat)
     :
-    device {deviceObj.getVulkanDevice()},
-    vertexData {
-        deviceObj.getPhysicalDevice(),
-        device,
-        sizeof(vertices[0]) * vertices.size(),
-        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-    } {
-
-    vertexData.copyData(vertices.data());
+    queue {deviceObj.getQueue()},
+    device {deviceObj.getVulkanDevice()} {
 
     VkAttachmentDescription colorAttachment = {};
     colorAttachment.format = swapChainImageFormat;
@@ -43,6 +35,18 @@ RenderPass::RenderPass(Device &deviceObj, const VkFormat &swapChainImageFormat)
     renderPassInfo.subpassCount = 1;
     renderPassInfo.pSubpasses = &subpass;
 
+
+    // unused?
+    VkSubpassDependency dependency = {};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    //renderPassInfo.dependencyCount = 1;
+    //renderPassInfo.pDependencies = &dependency;
+
     VkResult result = vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass);
     if (result != VK_SUCCESS) {
         std::cout << "Failed to create render pass" << std::endl;
@@ -55,10 +59,9 @@ RenderPass::~RenderPass() {
     for (size_t i = 0; i < fences.size(); ++i) {
         vkDestroyFence(device, fences[i], nullptr);
     }
-    vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
+    queue.freeCommandBuffers(commandBuffers.data(), commandBuffers.size());
     vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
     vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
-    vkDestroyCommandPool(device, commandPool, nullptr);
     vkDestroyRenderPass(device, renderPass, nullptr);
 }
 
@@ -73,8 +76,7 @@ VkRenderPass &RenderPass::getVulkanRenderPass() {
 }
 
 
-void RenderPass::initCommandPool(Device &device, Pipeline &pipeline, SwapChain &swapChain) {
-    device.createCommandPool(commandPool);
+void RenderPass::initCommandPool(Device &device, GeometryBuffer &geometry, Pipeline &pipeline, SwapChain &swapChain) {
     allocateCommandBuffers(commandBuffers, device.getVulkanDevice(), swapChain.getFramebufferSize());
 
     for (size_t i = 0; i < commandBuffers.size(); i++) {
@@ -97,7 +99,7 @@ void RenderPass::initCommandPool(Device &device, Pipeline &pipeline, SwapChain &
 
         vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
         pipeline.addInitCommands(commandBuffers[i]);
-        vertexData.render(commandBuffers[i], vertices.size());
+        geometry.render(commandBuffers[i]);
         vkCmdEndRenderPass(commandBuffers[i]);
         VkResult result = vkEndCommandBuffer(commandBuffers[i]);
         if (result != VK_SUCCESS) {
@@ -107,17 +109,6 @@ void RenderPass::initCommandPool(Device &device, Pipeline &pipeline, SwapChain &
 
     device.createSemaphore(imageAvailableSemaphore);
     device.createSemaphore(renderFinishedSemaphore);
-
-    // unused?
-    VkSubpassDependency dependency = {};
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.srcAccessMask = 0;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    //renderPassInfo.dependencyCount = 1;
-    //renderPassInfo.pDependencies = &dependency;
 }
 
 
@@ -164,17 +155,7 @@ void RenderPass::renderFrame(Device &device, VkSwapchainKHR &swapChain) {
 
 void RenderPass::allocateCommandBuffers(std::vector<VkCommandBuffer> &commandBuffers, VkDevice &device, size_t bufferCount) {
     commandBuffers.resize(bufferCount);
-    VkCommandBufferAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = commandPool;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = (uint32_t) bufferCount;
-
-    VkResult result = vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data());
-    if (result != VK_SUCCESS) {
-        std::cout << "Failed to allocate command buffers" << std::endl;
-    }
-
+    queue.allocateCommandBuffers(commandBuffers.data(), bufferCount);
 
     fences.resize(bufferCount);
     VkFenceCreateInfo fenceInfo = {};
