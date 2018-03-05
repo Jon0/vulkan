@@ -113,8 +113,8 @@ void GeometryBuffer::setupDescriptorSet() {
         descriptorWrite.dstBinding = 0;
         descriptorWrite.dstArrayElement = 0;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pBufferInfo = &bufferInfo[i];
+        descriptorWrite.descriptorCount = 8;
+        descriptorWrite.pBufferInfo = bufferInfo.data();
         descriptorWrite.pImageInfo = nullptr; // Optional
         descriptorWrite.pTexelBufferView = nullptr; // Optional
 
@@ -138,7 +138,10 @@ void GeometryBuffer::setupDescriptorSet() {
 
 
 void GeometryBuffer::render(VkCommandBuffer &commandBuffer, Pipeline &pipeline) {
-    std::vector<uint32_t> dynamicOffsets {0, 1, 2, 3, 4, 5, 6, 7};
+    std::vector<uint32_t> dynamicOffsets;
+    for (uint32_t i = 0; i < 8; ++i) {
+        dynamicOffsets.push_back(i * sizeof(UniformBufferObject));
+    }
 
     VkBuffer vertexBuffers[] = {vertexBuffer.getBuffer()};
     VkDeviceSize offsets[] = {0};
@@ -147,7 +150,7 @@ void GeometryBuffer::render(VkCommandBuffer &commandBuffer, Pipeline &pipeline) 
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getLayout(), 0, descriptorSets.size(), descriptorSets.data(), dynamicOffsets.size(), dynamicOffsets.data());
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(commandBuffer, indexBuffer.getBuffer(), 0, VK_INDEX_TYPE_UINT16);
-    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 2, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 4, 0, 0, 0);
 
     //vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getLayout(), 0, 1, &descriptorSets[1], dynamicOffsets.size(), dynamicOffsets.data());
     //vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);

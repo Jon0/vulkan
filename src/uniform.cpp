@@ -19,7 +19,7 @@ Uniform::Uniform(Device &deviceObj)
     VkDescriptorSetLayoutBinding uboLayoutBinding = {};
     uboLayoutBinding.binding = 0;
     uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-    uboLayoutBinding.descriptorCount = 1;
+    uboLayoutBinding.descriptorCount = instanceCount;
     uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
 
@@ -51,7 +51,7 @@ std::vector<VkDescriptorBufferInfo> Uniform::getDescriptorBufferInfo() {
     for (size_t i = 0; i < instanceCount; ++i) {
         VkDescriptorBufferInfo bufferInfo = {};
         bufferInfo.buffer = uniformMemory.getBuffer();
-        bufferInfo.offset = sizeof(UniformBufferObject) * i;
+        bufferInfo.offset = 0; // sizeof(UniformBufferObject) * i; // using dynamic offset
         bufferInfo.range = sizeof(UniformBufferObject);
         result.push_back(bufferInfo);
     }
@@ -61,7 +61,7 @@ std::vector<VkDescriptorBufferInfo> Uniform::getDescriptorBufferInfo() {
 
 std::vector<VkDescriptorSetLayout> Uniform::getDescriptorSetLayout() {
     std::vector<VkDescriptorSetLayout> result;
-    for (size_t i = 0; i < instanceCount; ++i) {
+    for (size_t i = 0; i < 1; ++i) {
         result.push_back(descriptorSetLayout);
     }
     return result;
