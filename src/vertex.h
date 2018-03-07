@@ -95,6 +95,8 @@ public:
     void update(const VkExtent2D &swapChainExtent);
 
 private:
+    uint32_t bindingCount;
+    uint32_t descriptorCount;
     VkDevice &device;
     VkDeviceSize vertexBufferSize;
     VkDeviceSize indexBufferSize;

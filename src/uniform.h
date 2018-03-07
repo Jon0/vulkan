@@ -24,19 +24,19 @@ struct UniformBufferObject {
 
 class Uniform {
 public:
-    Uniform(Device &deviceObj);
+    Uniform(Device &deviceObj, uint32_t descriptors);
     ~Uniform();
 
     void createUniformBuffer();
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
     VkBuffer &getBuffer();
-    std::vector<VkDescriptorBufferInfo> getDescriptorBufferInfo();
-    std::vector<VkDescriptorSetLayout> getDescriptorSetLayout();
+    VkDescriptorBufferInfo getDescriptorBufferInfo(uint32_t index);
+    VkDescriptorSetLayout &getDescriptorSetLayout();
     void updateUniformBuffer(const VkExtent2D &swapChainExtent);
 
 private:
-    uint32_t instanceCount;
+    uint32_t descriptorCount;
     Memory uniformMemory;
     VkDevice &device;
     VkDescriptorSetLayout descriptorSetLayout;
