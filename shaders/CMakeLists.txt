@@ -1,8 +1,13 @@
 
 # build shaders
 execute_process(
-    COMMAND glslangValidator -V shader.frag
     COMMAND glslangValidator -V shader.vert
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/shaders/"
+)
+
+
+execute_process(
+    COMMAND glslangValidator -V shader.frag
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/shaders/"
 )
 

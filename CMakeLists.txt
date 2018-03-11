@@ -13,6 +13,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/build/")
 include_directories("${PROJECT_SOURCE_DIR}/")
 
 
+# copy assets
+add_subdirectory(assets)
+
+
 # build shaders
 add_subdirectory(shaders)
 

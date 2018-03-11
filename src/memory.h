@@ -15,7 +15,7 @@ public:
     ~Memory();
 
     VkBuffer &getBuffer();
-    void copyData(const void *newData);
+    void copyData(const void *newData, size_t count);
     void copyDataTo(const void *newData, size_t offset, size_t count);
 
     /*

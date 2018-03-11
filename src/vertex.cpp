@@ -1,6 +1,46 @@
 #include <iostream>
 
+#include <glm/ext.hpp>
+
 #include "vertex.h"
+
+
+void GeometryBuilder::addPolygon(const std::vector<Vertex> &verts) {
+    std::vector<size_t> inds;
+    for (const auto &v : verts) {
+        inds.push_back(addVertex(v));
+    }
+    polygons.push_back(inds);
+}
+
+
+size_t GeometryBuilder::addVertex(const Vertex &vert) {
+    auto v = index.find(vert);
+    if (v == index.end()) {
+        data.push_back(vert);
+        size_t new_index = data.size() - 1;
+        index.insert(std::make_pair(vert, new_index));
+        return new_index;
+    }
+    else {
+        return v->second;
+    }
+}
+
+
+void GeometryBuilder::outputVerts(std::vector<Vertex> &verts) const {
+    verts = data;
+}
+
+
+void GeometryBuilder::outputInds(std::vector<uint16_t> &inds) const {
+    for (const auto &p : polygons) {
+        for (const auto &i : p) {
+            inds.push_back(i);
+        }
+    }
+}
+
 
 GeometryInstance::GeometryInstance() {
 
@@ -8,13 +48,13 @@ GeometryInstance::GeometryInstance() {
 
 
 
-GeometryBuffer::GeometryBuffer(Device &deviceObj)
+GeometryBuffer::GeometryBuffer(Device &deviceObj, const GeometryBuilder &builder)
     :
     bindingCount {1},
-    descriptorCount {1024},
+    descriptorCount {1},
     device {deviceObj.getVulkanDevice()},
     vertexBufferSize {sizeof(Vertex) * 1024},
-    indexBufferSize {sizeof(uint16_t) * 1024},
+    indexBufferSize {sizeof(uint16_t) * 1024 * 8},
     vertexBuffer {
         deviceObj.getPhysicalDevice(),
         device,
@@ -31,8 +71,15 @@ GeometryBuffer::GeometryBuffer(Device &deviceObj)
     },
     uniformBuffer {deviceObj, descriptorCount} {
 
-    verts = vertices;
-    inds = indices;
+
+    builder.outputVerts(verts);
+    builder.outputInds(inds);
+    //verts = vertices;
+    //inds = indices;
+
+
+    std::cout << verts.size() << std::endl;
+    std::cout << inds.size() << std::endl;
 }
 
 
@@ -57,7 +104,9 @@ void GeometryBuffer::copyData(Device &deviceObj) {
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
     };
-    vertexStagingBuffer.copyData(verts.data());
+
+    // unsafe copy
+    vertexStagingBuffer.copyData(verts.data(), verts.size() * sizeof(Vertex));
     vertexBuffer.copyFromBuffer(deviceObj.getQueue(), vertexStagingBuffer);
 
 
@@ -68,7 +117,7 @@ void GeometryBuffer::copyData(Device &deviceObj) {
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
     };
-    indexStagingBuffer.copyData(inds.data());
+    indexStagingBuffer.copyData(inds.data(), inds.size() * sizeof(uint16_t));
     indexBuffer.copyFromBuffer(deviceObj.getQueue(), indexStagingBuffer);
 }
 
@@ -140,7 +189,7 @@ void GeometryBuffer::render(VkCommandBuffer &commandBuffer, Pipeline &pipeline) 
 
     for (auto &descriptorSet : descriptorSets) {
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getLayout(), 0, 1, &descriptorSet, 0, nullptr);
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(inds.size()), 1, 0, 0, 0);
     }
 }
 

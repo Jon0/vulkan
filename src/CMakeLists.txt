@@ -22,6 +22,7 @@ file(GLOB VULKAN_FILES
 	"main.cpp"
 	"device.cpp"
 	"memory.cpp"
+	"model.cpp"
 	"pipeline.cpp"
 	"renderpass.cpp"
 	"shader.cpp"

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstring>
 
 #include "memory.h"
@@ -47,16 +48,17 @@ VkBuffer &Memory::getBuffer() {
 }
 
 
-void Memory::copyData(const void *newData) {
-    copyDataTo(newData, 0, bufferSize);
+void Memory::copyData(const void *newData, size_t count) {
+    copyDataTo(newData, 0, std::min(bufferSize, count));
 }
 
 
 void Memory::copyDataTo(const void *newData, size_t offset, size_t count) {
     void* data;
-    vkMapMemory(device, vertexBufferMemory, offset, count, 0, &data);
-    memcpy(data, newData, (size_t) count);
-    vkUnmapMemory(device, vertexBufferMemory);
+    if (vkMapMemory(device, vertexBufferMemory, offset, count, 0, &data) == VK_SUCCESS) {
+        memcpy(data, newData, (size_t) count);
+        vkUnmapMemory(device, vertexBufferMemory);
+    }
 }
 
 
@@ -69,6 +71,7 @@ void Memory::copyFromBuffer(DeviceQueue &queue, const Memory &mem) {
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
     vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
 
     VkBufferCopy copyRegion = {};
     copyRegion.srcOffset = 0; // Optional

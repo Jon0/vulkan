@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "device.h"
+#include "model.h"
 #include "renderpass.h"
 #include "surface.h"
 #include "swapchain.h"
@@ -42,6 +43,8 @@ bool printDevice(VkPhysicalDevice &device) {
 
 int main(int argc, const char *argv[]) {
 
+
+
     // create vulkan instance with validation
     VulkanInstance instance(argc > 1);
 
@@ -66,7 +69,8 @@ int main(int argc, const char *argv[]) {
     swapChain.createFrameBuffers(device.getVulkanDevice(), renderPass.getVulkanRenderPass());
 
     // setup geometry
-    GeometryBuffer geometry(device);
+    ObjFile obj("assets/Box.obj");
+    GeometryBuffer geometry(device, obj.getBuilder());
     geometry.setupDescriptorPool();
     geometry.setupDescriptorSet();
     geometry.copyData(device);
