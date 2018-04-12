@@ -19,10 +19,10 @@ public:
     VkExtent2D getExtent() const;
     VkFramebuffer &getFrameBuffer(size_t bufferIndex);
 
-    void createFrameBuffers(VkDevice &device, VkRenderPass &renderPass);
+    void createFrameBuffers(VkRenderPass &renderPass);
 
 private:
-    VkDevice device;
+    VkDevice &device;
     VkSwapchainKHR swapChain;
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;

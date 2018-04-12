@@ -66,11 +66,6 @@ RenderPass::~RenderPass() {
 }
 
 
-void RenderPass::setup(Device &device) {
-
-}
-
-
 VkRenderPass &RenderPass::getVulkanRenderPass() {
     return renderPass;
 }
@@ -112,11 +107,12 @@ void RenderPass::initCommandPool(Device &device, GeometryBuffer &geometry, Pipel
 
 
 
-void RenderPass::renderFrame(Device &device, VkSwapchainKHR &swapChain) {
+void RenderPass::renderFrame(VkQueue &queue, VkSwapchainKHR &swapChain) {
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(device.getVulkanDevice(), swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
-    vkWaitForFences(device.getVulkanDevice(), 1, &fences[imageIndex], true, std::numeric_limits<uint64_t>::max());
-    vkResetFences(device.getVulkanDevice(), 1, &fences[imageIndex]);
+
+    vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    vkWaitForFences(device, 1, &fences[imageIndex], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(device, 1, &fences[imageIndex]);
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -133,8 +129,8 @@ void RenderPass::renderFrame(Device &device, VkSwapchainKHR &swapChain) {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit(device.getGraphicsQueue(), 1, &submitInfo, fences[imageIndex]) != VK_SUCCESS) {
-        std::cout << "failed to submit draw command buffer!" << std::endl;
+    if (vkQueueSubmit(queue, 1, &submitInfo, fences[imageIndex]) != VK_SUCCESS) {
+       std::cout << "failed to submit draw command buffer!" << std::endl;
     }
 
     VkPresentInfoKHR presentInfo = {};
@@ -147,8 +143,8 @@ void RenderPass::renderFrame(Device &device, VkSwapchainKHR &swapChain) {
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr; // Optional
-    vkQueuePresentKHR(device.getGraphicsQueue(), &presentInfo);
-    vkQueueWaitIdle(device.getGraphicsQueue());
+    vkQueuePresentKHR(queue, &presentInfo);
+    vkQueueWaitIdle(queue);
 }
 
 
@@ -159,6 +155,7 @@ void RenderPass::allocateCommandBuffers(std::vector<VkCommandBuffer> &commandBuf
     fences.resize(bufferCount);
     VkFenceCreateInfo fenceInfo = {};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
     for (size_t i = 0; i < bufferCount; ++i) {
         vkCreateFence(device, &fenceInfo, nullptr, &fences[i]);
     }

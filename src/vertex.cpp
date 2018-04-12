@@ -54,7 +54,7 @@ GeometryBuffer::GeometryBuffer(Device &deviceObj, const GeometryBuilder &builder
     descriptorCount {1},
     device {deviceObj.getVulkanDevice()},
     vertexBufferSize {sizeof(Vertex) * 1024},
-    indexBufferSize {sizeof(uint16_t) * 1024 * 8},
+    indexBufferSize {sizeof(uint16_t) * 1024},
     vertexBuffer {
         deviceObj.getPhysicalDevice(),
         device,
@@ -185,7 +185,6 @@ void GeometryBuffer::render(VkCommandBuffer &commandBuffer, Pipeline &pipeline) 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getVulkanPipeline());
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(commandBuffer, indexBuffer.getBuffer(), 0, VK_INDEX_TYPE_UINT16);
-
 
     for (auto &descriptorSet : descriptorSets) {
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getLayout(), 0, 1, &descriptorSet, 0, nullptr);

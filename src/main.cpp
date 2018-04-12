@@ -58,7 +58,7 @@ int main(int argc, const char *argv[]) {
     Device device(physicalDevice);
 
     // create window and surface
-    Window window(instance.getVulkanInstance(), 3200, 1800);
+    Window window(instance.getVulkanInstance(), 800, 600);
     Surface surface(physicalDevice, device.getGraphicsFamily(), window.getSurface());
 
     // create swap chain using window surface
@@ -66,7 +66,7 @@ int main(int argc, const char *argv[]) {
 
     // render pass is a pipeline component
     RenderPass renderPass(device, swapChain.getImageFormat());
-    swapChain.createFrameBuffers(device.getVulkanDevice(), renderPass.getVulkanRenderPass());
+    swapChain.createFrameBuffers(renderPass.getVulkanRenderPass());
 
     // setup geometry
     ObjFile obj("assets/Box.obj");
@@ -94,8 +94,8 @@ int main(int argc, const char *argv[]) {
     while(!window.shouldClose()) {
         window.pollEvents();
         geometry.update(swapChain.getExtent());
-        renderPass.renderFrame(device, swapChain.getSwapChain());
-        //std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(5));
+        renderPass.renderFrame(device.getGraphicsQueue(), swapChain.getSwapChain());
+        std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(5));
         frames++;
     }
 

@@ -17,6 +17,10 @@ VulkanInstance::VulkanInstance(bool enableValidation) {
         std::cout << "Initialization failed" << std::endl;
     }
 
+    if (!glfwVulkanSupported()) {
+        std::cout << "Vulkan not supported" << std::endl;
+    }
+
     // check available extensions
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -51,7 +55,10 @@ VulkanInstance::VulkanInstance(bool enableValidation) {
     // add required validation layers
     std::vector<const char*> validationLayers;
     if (enableValidation) {
+        validationLayers.push_back("VK_LAYER_LUNARG_core_validation");
+        validationLayers.push_back("VK_LAYER_LUNARG_parameter_validation");
         validationLayers.push_back("VK_LAYER_LUNARG_standard_validation");
+        std::cout << "Enabled validation" << std::endl;
     }
 
     VkInstanceCreateInfo createInfo = {};

@@ -99,7 +99,7 @@ VkFramebuffer &SwapChain::getFrameBuffer(size_t bufferIndex) {
 }
 
 
-void SwapChain::createFrameBuffers(VkDevice &device, VkRenderPass &renderPass) {
+void SwapChain::createFrameBuffers(VkRenderPass &renderPass) {
     swapChainFramebuffers.resize(swapChainImageViews.size());
     for (size_t i = 0; i < swapChainImageViews.size(); i++) {
         VkImageView attachments[] = {

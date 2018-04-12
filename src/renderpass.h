@@ -17,17 +17,15 @@ public:
     RenderPass(Device &device, const VkFormat &swapChainImageFormat);
     ~RenderPass();
 
-    void setup(Device &device);
-
     VkRenderPass &getVulkanRenderPass();
     void initCommandPool(Device &device, GeometryBuffer &geometry, Pipeline &pipeline, SwapChain &swapChain);
-    void renderFrame(Device &device, VkSwapchainKHR &swapChain);
+    void renderFrame(VkQueue &queue, VkSwapchainKHR &swapChain);
 
 private:
     void allocateCommandBuffers(std::vector<VkCommandBuffer> &commandBuffers, VkDevice &device, size_t bufferCount);
 
     DeviceQueue &queue;
-    VkDevice device;
+    VkDevice &device;
     VkRenderPass renderPass;
     VkCommandPool commandPool;
     std::vector<VkCommandBuffer> commandBuffers;
