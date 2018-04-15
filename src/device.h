@@ -32,6 +32,8 @@ public:
 
     std::vector<VkQueueFamilyProperties> getQueueFamilies() const;
     VkDevice createLogicalDevice(int graphicsFamily);
+    VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+    VkFormat findDepthFormat();
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 private:
@@ -55,6 +57,12 @@ public:
      * returns initialised commandPool
      */
     DeviceQueue &getQueue();
+
+
+    /*
+     * allocate device memory
+     */
+    void allocMemory(const VkMemoryRequirements &memRequirements, const VkMemoryPropertyFlags &properties, VkDeviceMemory &memory);
 
 
     /*

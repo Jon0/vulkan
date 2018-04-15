@@ -34,6 +34,31 @@ std::vector<VkQueueFamilyProperties> PhysicalDevice::getQueueFamilies() const {
 }
 
 
+VkFormat PhysicalDevice::findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
+    for (const VkFormat &format : candidates) {
+        VkFormatProperties props;
+        vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+
+        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+            return format;
+        } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+            return format;
+        }
+    }
+
+    throw std::runtime_error("failed to find supported format!");
+}
+
+
+VkFormat PhysicalDevice::findDepthFormat() {
+    return findSupportedFormat(
+        {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+    );
+}
+
+
 VkDevice PhysicalDevice::createLogicalDevice(int graphicsFamily) {
     float priorities[] = { 1.0f };
     VkDeviceQueueCreateInfo queueInfo = {};
@@ -91,7 +116,6 @@ uint32_t PhysicalDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
 }
 
 
-
 Device::Device(VkPhysicalDevice &physDevice)
     :
     physicalDevice {physDevice} {
@@ -139,6 +163,18 @@ int Device::getGraphicsFamily() const {
 
 DeviceQueue &Device::getQueue() {
     return *commandQueue.get();
+}
+
+
+void Device::allocMemory(const VkMemoryRequirements &memRequirements, const VkMemoryPropertyFlags &properties, VkDeviceMemory &memory) {
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = physicalDevice.findMemoryType(memRequirements.memoryTypeBits, properties);
+
+    if (vkAllocateMemory(device, &allocInfo, nullptr, &memory) != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate image memory!");
+    }
 }
 
 

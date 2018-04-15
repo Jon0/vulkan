@@ -2,13 +2,24 @@
 
 #include "swapchain.h"
 
-SwapChain::SwapChain(VkDevice &device, Surface &surface)
+SwapChain::SwapChain(Device &dev, Surface &surface)
     :
-    device {device} {
+    device {dev.getVulkanDevice()},
+    swapChainExtent {surface.getExtent()},
+    depthImageFormat {dev.getPhysicalDevice().findDepthFormat()},
+    depthImage {
+        dev,
+        swapChainExtent.width,
+        swapChainExtent.height,
+        depthImageFormat,
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    } {
+
     VkSurfaceCapabilitiesKHR capabilities = surface.getCapabilities();
     VkSurfaceFormatKHR surfaceFormat = surface.getSurfaceFormat();
     uint32_t imageCount = surface.getImageCount();
-    swapChainExtent = surface.getExtent();
 
     VkSwapchainCreateInfoKHR swapchainInfo = {};
     swapchainInfo.sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -100,17 +111,20 @@ VkFramebuffer &SwapChain::getFrameBuffer(size_t bufferIndex) {
 
 
 void SwapChain::createFrameBuffers(VkRenderPass &renderPass) {
+    VkImageView depthImageView = depthImage.createImageView(depthImageFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+
     swapChainFramebuffers.resize(swapChainImageViews.size());
     for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-        VkImageView attachments[] = {
-            swapChainImageViews[i]
+        std::array<VkImageView, 2> attachments = {
+            swapChainImageViews[i],
+            depthImageView
         };
 
         VkFramebufferCreateInfo framebufferInfo = {};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass = renderPass;
-        framebufferInfo.attachmentCount = 1;
-        framebufferInfo.pAttachments = attachments;
+        framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        framebufferInfo.pAttachments = attachments.data();
         framebufferInfo.width = swapChainExtent.width;
         framebufferInfo.height = swapChainExtent.height;
         framebufferInfo.layers = 1;

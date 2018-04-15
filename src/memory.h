@@ -11,7 +11,7 @@
 
 class Memory {
 public:
-    Memory(PhysicalDevice &physicalDevice, VkDevice &dev, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+    Memory(Device &dev, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
     ~Memory();
 
     VkBuffer &getBuffer();
@@ -27,7 +27,7 @@ private:
     VkDevice &device;
     VkDeviceSize bufferSize;
     VkBuffer vertexBuffer;
-    VkDeviceMemory vertexBufferMemory;
+    VkDeviceMemory bufferMemory;
     VkMemoryRequirements memRequirements;
 
 

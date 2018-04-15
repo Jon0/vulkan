@@ -53,18 +53,16 @@ GeometryBuffer::GeometryBuffer(Device &deviceObj, const GeometryBuilder &builder
     bindingCount {1},
     descriptorCount {1},
     device {deviceObj.getVulkanDevice()},
-    vertexBufferSize {sizeof(Vertex) * 1024},
-    indexBufferSize {sizeof(uint16_t) * 1024},
+    vertexBufferSize {sizeof(Vertex) * 1024 * 128},
+    indexBufferSize {sizeof(uint16_t) * 1024 * 512},
     vertexBuffer {
-        deviceObj.getPhysicalDevice(),
-        device,
+        deviceObj,
         vertexBufferSize,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     },
     indexBuffer {
-        deviceObj.getPhysicalDevice(),
-        device,
+        deviceObj,
         indexBufferSize,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
@@ -98,8 +96,7 @@ std::vector<VkDescriptorSetLayout> GeometryBuffer::getDescriptorSetLayouts() {
 
 void GeometryBuffer::copyData(Device &deviceObj) {
     Memory vertexStagingBuffer {
-        deviceObj.getPhysicalDevice(),
-        deviceObj.getVulkanDevice(),
+        deviceObj,
         vertexBufferSize,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
@@ -111,8 +108,7 @@ void GeometryBuffer::copyData(Device &deviceObj) {
 
 
     Memory indexStagingBuffer {
-        deviceObj.getPhysicalDevice(),
-        deviceObj.getVulkanDevice(),
+        deviceObj,
         indexBufferSize,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT

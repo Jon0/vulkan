@@ -21,6 +21,7 @@ include_directories(${GLM_INCLUDE_DIRS})
 file(GLOB VULKAN_FILES
 	"main.cpp"
 	"device.cpp"
+	"image.cpp"
 	"memory.cpp"
 	"model.cpp"
 	"pipeline.cpp"

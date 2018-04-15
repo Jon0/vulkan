@@ -9,8 +9,7 @@ Uniform::Uniform(Device &deviceObj, uint32_t descriptors)
     descriptorCount {descriptors},
     device{deviceObj.getVulkanDevice()},
     uniformMemory {
-        deviceObj.getPhysicalDevice(),
-        deviceObj.getVulkanDevice(),
+        deviceObj,
         sizeof(UniformBufferObject) * descriptors,
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT

@@ -4,9 +4,9 @@
 #include "memory.h"
 
 
-Memory::Memory(PhysicalDevice &physicalDevice, VkDevice &dev, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
+Memory::Memory(Device &dev, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
     :
-    device {dev},
+    device {dev.getVulkanDevice()},
     bufferSize {size} {
 
     VkBufferCreateInfo bufferInfo = {};
@@ -21,24 +21,14 @@ Memory::Memory(PhysicalDevice &physicalDevice, VkDevice &dev, VkDeviceSize size,
 
     vkGetBufferMemoryRequirements(device, vertexBuffer, &memRequirements);
 
+    dev.allocMemory(memRequirements, properties, bufferMemory);
 
-    VkMemoryAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = physicalDevice.findMemoryType(memRequirements.memoryTypeBits, properties);
-
-    // ...
-
-    if (vkAllocateMemory(device, &allocInfo, nullptr, &vertexBufferMemory) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate buffer memory!");
-    }
-
-    vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
+    vkBindBufferMemory(device, vertexBuffer, bufferMemory, 0);
 }
 
 
 Memory::~Memory() {
-    vkFreeMemory(device, vertexBufferMemory, nullptr);
+    vkFreeMemory(device, bufferMemory, nullptr);
     vkDestroyBuffer(device, vertexBuffer, nullptr);
 }
 
@@ -55,9 +45,9 @@ void Memory::copyData(const void *newData, size_t count) {
 
 void Memory::copyDataTo(const void *newData, size_t offset, size_t count) {
     void* data;
-    if (vkMapMemory(device, vertexBufferMemory, offset, count, 0, &data) == VK_SUCCESS) {
+    if (vkMapMemory(device, bufferMemory, offset, count, 0, &data) == VK_SUCCESS) {
         memcpy(data, newData, (size_t) count);
-        vkUnmapMemory(device, vertexBufferMemory);
+        vkUnmapMemory(device, bufferMemory);
     }
 }
 

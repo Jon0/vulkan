@@ -42,11 +42,24 @@ bool printDevice(VkPhysicalDevice &device) {
 
 
 int main(int argc, const char *argv[]) {
+    std::string objFilePath = "assets/Box.obj";
+    bool enableValidation = false;
 
+
+    for (size_t i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--validate") {
+            enableValidation = true;
+        }
+        else if (arg == "--obj") {
+            objFilePath = argv[++i];
+            std::cout << "Using obj file: " << objFilePath << std::endl;
+        }
+    }
 
 
     // create vulkan instance with validation
-    VulkanInstance instance(argc > 1);
+    VulkanInstance instance(enableValidation);
 
     // list devices
     std::vector<VkPhysicalDevice> devices;
@@ -62,14 +75,14 @@ int main(int argc, const char *argv[]) {
     Surface surface(physicalDevice, device.getGraphicsFamily(), window.getSurface());
 
     // create swap chain using window surface
-    SwapChain swapChain(device.getVulkanDevice(), surface);
+    SwapChain swapChain(device, surface);
 
     // render pass is a pipeline component
     RenderPass renderPass(device, swapChain.getImageFormat());
     swapChain.createFrameBuffers(renderPass.getVulkanRenderPass());
 
     // setup geometry
-    ObjFile obj("assets/Box.obj");
+    ObjFile obj(objFilePath);
     GeometryBuffer geometry(device, obj.getBuilder());
     geometry.setupDescriptorPool();
     geometry.setupDescriptorSet();
