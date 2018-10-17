@@ -13,6 +13,7 @@
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 
@@ -38,6 +39,7 @@ bool printDevice(VkPhysicalDevice &device) {
         double memSize = (double) deviceMemory.memoryHeaps[i].size / 1000000.0;
         std::cout << "size: " << memSize << " MB" << std::endl;
     }
+    return true;
 }
 
 
