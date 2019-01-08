@@ -46,8 +46,7 @@ bool printDevice(VkPhysicalDevice &device) {
 int main(int argc, const char *argv[]) {
     std::string objFilePath = "assets/Box.obj";
     bool enableValidation = false;
-
-
+    
     for (size_t i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if (arg == "--validate") {

@@ -82,7 +82,7 @@ GeometryBuffer::GeometryBuffer(Device &deviceObj, const GeometryBuilder &builder
 
 
 GeometryBuffer::~GeometryBuffer() {
-    vkFreeDescriptorSets(device, descriptorPool, descriptorSets.size(), descriptorSets.data());
+    //vkFreeDescriptorSets(device, descriptorPool, descriptorSets.size(), descriptorSets.data());
     vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 }
 

@@ -4,7 +4,7 @@ set(VULKAN_NAME "vkrun")
 
 
 # compile configuration
-add_definitions(-std=c++17)
+add_definitions(-std=c++2a)
 
 
 find_package(PkgConfig REQUIRED)
