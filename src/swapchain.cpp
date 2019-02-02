@@ -17,6 +17,8 @@ SwapChain::SwapChain(Device &dev, Surface &surface)
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     } {
 
+    std::cout << "Creating swapchain" << std::endl;
+
     VkSurfaceCapabilitiesKHR capabilities = surface.getCapabilities();
     VkSurfaceFormatKHR surfaceFormat = surface.getSurfaceFormat();
     uint32_t imageCount = surface.getImageCount();

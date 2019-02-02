@@ -4,77 +4,84 @@
 
 
 Surface::Surface(VkPhysicalDevice &physicalDevice, int graphicsFamily, VkSurfaceKHR &windowSurface) {
-    surface = windowSurface;
-    VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, graphicsFamily, surface, &presentSupport);
-    std::cout << "Present support: " << presentSupport << std::endl;
+	surface = windowSurface;
+	VkBool32 presentSupport = false;
+	vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, graphicsFamily, surface, &presentSupport);
+	std::cout << "Present support: " << presentSupport << std::endl;
 
 
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
-    extent = capabilities.currentExtent;
-    std::cout << "extent: " << extent.width << ", " << extent.height << std::endl;
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
+	extent = capabilities.currentExtent;
 
-    imageCount = capabilities.minImageCount + 1;
-    if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount) {
-        imageCount = capabilities.maxImageCount;
-    }
-    std::cout << "image count: " << imageCount << std::endl;
+	// need to handle window resize
+	extent.width = 800;
+	extent.height = 600;
 
-    uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
-    if (formatCount != 0) {
-        formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, formats.data());
-    }
+	std::cout << "extent: " << extent.width << ", " << extent.height << std::endl;
 
-    std::cout << "format count: " << formatCount << std::endl;
-    for (const auto fmt: formats) {
-        if (fmt.format == VK_FORMAT_B8G8R8A8_UNORM) {
-            surfaceFormat = fmt;
-        }
-    }
+	imageCount = capabilities.minImageCount + 1;
+	if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount) {
+		imageCount = capabilities.maxImageCount;
+	}
+	std::cout << "image count: " << imageCount << std::endl;
 
-    uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
-    if (presentModeCount != 0) {
-        presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
-    }
+	uint32_t formatCount;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
+	if (formatCount != 0) {
+		formats.resize(formatCount);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, formats.data());
+	}
 
-    std::cout << "present mode count: " << presentModeCount << std::endl;
-    for (const auto p: presentModes) {
-        if (p == VK_PRESENT_MODE_MAILBOX_KHR) {
-            presentMode = p;
-        }
-    }
+	std::cout << "format count: " << formatCount << std::endl;
+	for (const auto fmt: formats) {
+		if (fmt.format == VK_FORMAT_B8G8R8A8_UNORM) {
+			surfaceFormat = fmt;
+		}
+	}
+
+	uint32_t presentModeCount;
+	vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
+	if (presentModeCount != 0) {
+		presentModes.resize(presentModeCount);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
+	}
+
+	std::cout << "present mode count: " << presentModeCount << std::endl;
+	for (const auto p: presentModes) {
+		if (p == VK_PRESENT_MODE_MAILBOX_KHR) {
+			presentMode = p;
+		}
+	}
+
+	std::cout << "Surface ready" << std::endl;
 }
 
 
 VkSurfaceKHR Surface::getSurface() const {
-    return surface;
+	return surface;
 }
 
 
 VkSurfaceCapabilitiesKHR Surface::getCapabilities() const {
-    return capabilities;
+	return capabilities;
 }
 
 
 VkSurfaceFormatKHR Surface::getSurfaceFormat() const {
-    return surfaceFormat;
+	return surfaceFormat;
 }
 
 
 VkPresentModeKHR Surface::getPresentMode() const {
-    return presentMode;
+	return presentMode;
 }
 
 
 VkExtent2D Surface::getExtent() const {
-    return extent;
+	return extent;
 }
 
 
 uint32_t Surface::getImageCount() const {
-    return imageCount;
+	return imageCount;
 }
