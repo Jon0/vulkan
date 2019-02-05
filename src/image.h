@@ -9,8 +9,15 @@ public:
 
     VkImageView createImageView(VkFormat format, VkImageAspectFlags aspectFlags);
 
+    void resizeTo(uint32_t width, uint32_t height);
+
 private:
-    VkDevice &device;
+    Device &dev;
+    VkFormat format;
+    VkImageTiling tiling;
+    VkImageUsageFlags usage;
+    VkMemoryPropertyFlags properties;
+    
     VkImage image;
     VkMemoryRequirements memRequirements;
     VkDeviceMemory imageMemory;

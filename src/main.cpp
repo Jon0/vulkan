@@ -106,6 +106,15 @@ int main(int argc, const char *argv[]) {
 	auto start = std::chrono::system_clock::now();
 	while(!window.shouldClose()) {
 		window.pollEvents();
+
+		std::pair<int, int> window_size = window.getWindowSize();
+
+		// update to match window size
+		swapChain.resizeTo(window_size.first, window_size.second, surface, renderPass.getVulkanRenderPass());
+		renderPass.resizeTo(geometry, pipeline, swapChain);
+		pipeline.setupPipeline(swapChain.getExtent(), renderPass.getVulkanRenderPass());
+
+		// update scene and output
 		geometry.update(swapChain.getExtent());
 		renderPass.renderFrame(device.getGraphicsQueue(), swapChain.getSwapChain());
 		std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(5));

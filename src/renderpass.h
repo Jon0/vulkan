@@ -19,6 +19,7 @@ public:
 
     VkRenderPass &getVulkanRenderPass();
     void initCommandPool(Device &device, GeometryBuffer &geometry, Pipeline &pipeline, SwapChain &swapChain);
+    void resizeTo(GeometryBuffer &geometry, Pipeline &pipeline, SwapChain &swapChain);
     void renderFrame(VkQueue &queue, VkSwapchainKHR &swapChain);
 
 private:

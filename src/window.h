@@ -15,6 +15,8 @@ public:
     bool shouldClose();
     void pollEvents();
 
+    std::pair<int, int> getWindowSize();
+
 private:
     VkInstance &instance;
     GLFWwindow *window;

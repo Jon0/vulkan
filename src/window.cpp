@@ -39,4 +39,16 @@ bool Window::shouldClose() {
 
 void Window::pollEvents() {
 	glfwPollEvents();
+
+	int w, h;
+	glfwGetWindowSize(window, &w, &h);
+
+	std::cout << "Window size" << w << ", " << h << std::endl;
+}
+
+
+std::pair<int, int> Window::getWindowSize() {
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h);
+	return std::make_pair(w, h);
 }

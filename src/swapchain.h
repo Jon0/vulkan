@@ -23,6 +23,8 @@ public:
 
 	void createFrameBuffers(VkRenderPass &renderPass);
 
+	void resizeTo(int width, int height, Surface &surface, VkRenderPass &renderPass);
+
 private:
 	VkDevice &device;
 	VkSwapchainKHR swapChain;

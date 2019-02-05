@@ -16,7 +16,6 @@ public:
 	VkExtent2D getExtent() const;
 	uint32_t getImageCount() const;
 
-
 private:
 	VkSurfaceKHR surface;
 	VkSurfaceCapabilitiesKHR capabilities;
