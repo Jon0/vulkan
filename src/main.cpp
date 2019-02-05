@@ -72,7 +72,9 @@ int main(int argc, const char *argv[]) {
 	Device device(physicalDevice);
 
 	// create window and surface
-	Window window(instance.getVulkanInstance(), 800, 600);
+	int width = 800;
+	int height = 600;
+	Window window(instance.getVulkanInstance(), width, height);
 	Surface surface(physicalDevice, device.getGraphicsFamily(), window.getSurface());
 
 	// create swap chain using window surface
@@ -108,11 +110,17 @@ int main(int argc, const char *argv[]) {
 		window.pollEvents();
 
 		std::pair<int, int> window_size = window.getWindowSize();
+		if (width != window_size.first || height != window_size.second) {
+			std::cout << "Window resized: " << window_size.first << ", " << window_size.second << std::endl;
 
-		// update to match window size
-		swapChain.resizeTo(window_size.first, window_size.second, surface, renderPass.getVulkanRenderPass());
-		renderPass.resizeTo(geometry, pipeline, swapChain);
-		pipeline.setupPipeline(swapChain.getExtent(), renderPass.getVulkanRenderPass());
+			// update to match window size
+			swapChain.resizeTo(window_size.first, window_size.second, surface, renderPass.getVulkanRenderPass());
+			pipeline.setupPipeline(swapChain.getExtent(), renderPass.getVulkanRenderPass());
+			renderPass.resizeTo(geometry, pipeline, swapChain);
+
+			width = window_size.first;
+			height = window_size.second;
+		}
 
 		// update scene and output
 		geometry.update(swapChain.getExtent());

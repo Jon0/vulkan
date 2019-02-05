@@ -39,11 +39,6 @@ bool Window::shouldClose() {
 
 void Window::pollEvents() {
 	glfwPollEvents();
-
-	int w, h;
-	glfwGetWindowSize(window, &w, &h);
-
-	std::cout << "Window size" << w << ", " << h << std::endl;
 }
 
 

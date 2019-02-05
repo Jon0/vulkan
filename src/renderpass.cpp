@@ -129,6 +129,9 @@ void RenderPass::initCommandPool(Device &device, GeometryBuffer &geometry, Pipel
 
 void RenderPass::resizeTo(GeometryBuffer &geometry, Pipeline &pipeline, SwapChain &swapChain) {
 
+    // renderpass can be re-used
+    // buffers must get recreated
+
     // cleanup existing data
     vkWaitForFences(device, fences.size(), fences.data(), true, std::numeric_limits<uint64_t>::max());
     queue.freeCommandBuffers(commandBuffers.data(), commandBuffers.size());
